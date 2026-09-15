@@ -18,8 +18,8 @@
  "AvailabilityQuest": 1,
  "AvailabilityQuest2": 2,
  "AvailabilityQuest2Id": 4,
- "AvailabilityQuest3": 0,
- "AvailabilityQuest3Id": -1,
+ "AvailabilityQuest3": 4,
+ "AvailabilityQuest3Id": 4,
  "AvailabilityQuest4": 0,
  "AvailabilityQuest4Id": -1,
  "AvailabilityQuestId": 3,
@@ -50,7 +50,7 @@
  "Options": [
   {"Option":{"Dialog":29,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I'll bring you 6 mana cores."},"OptionSlot":0},
   {"Option":{"Dialog":32,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Tell me what to look for."},"OptionSlot":1},
-  {"Option":{"Dialog":33,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"About my mana cores."},"OptionSlot":2},
+  {"Option":{"Dialog":19,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I have another question."},"OptionSlot":2},
   {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"Not yet."},"OptionSlot":3}
  ],
  "DialogMail": {

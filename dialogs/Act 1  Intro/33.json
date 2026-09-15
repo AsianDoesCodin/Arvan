@@ -40,7 +40,7 @@
  "DialogShowWheel": 0,
  "DialogSound": "",
  "DialogStopMusic": 0,
- "DialogText": "Bring me 6 mana cores from mana-born monsters. Keep them with you for the hand-in. If you have all six, turn in the quest here. Ordinary drops from animals are not a substitute for mana cores.",
+ "DialogText": "Have you had any luck finding mana cores? I need 6 cores dropped by mana-born monsters. Keep them in your inventory for the hand-in; defeating the creatures without bringing back the cores is not enough. If you have all six, turn in the task with me. If you are still gathering them, there is no need to rush into a fight you cannot manage.",
  "DialogTitle": "Bring Back Six Cores",
  "ModRev": 18,
  "OptionFaction1Points": 0,
@@ -48,7 +48,9 @@
  "OptionFactions1": -1,
  "OptionFactions2": -1,
  "Options": [
-  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I'll bring the cores."},"OptionSlot":0}
+  {"Option":{"Dialog":32,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Remind me where the cores come from."},"OptionSlot":0},
+  {"Option":{"Dialog":19,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Can I ask about something else?"},"OptionSlot":1},
+  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I'll check my cores."},"OptionSlot":2}
  ],
  "DialogMail": {
   "Sender": "",

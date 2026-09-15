@@ -40,7 +40,7 @@
  "DialogShowWheel": 0,
  "DialogSound": "",
  "DialogStopMusic": 0,
- "DialogText": "Your first task is to kill 3 goblins. Check your quest progress if you have lost count. Once all three are defeated, return here and turn in the task. We will deal with the packwolves after that.",
+ "DialogText": "Back from the road? Your task is still to deal with 3 goblins outside Valemont. Check your quest journal for your progress. If any remain, take your time and choose a fight you can survive. If all three are defeated, turn in the task with me. Until then, we will leave the packwolves for later. What do you need?",
  "DialogTitle": "Goblins Still to Deal With",
  "ModRev": 18,
  "OptionFaction1Points": 0,
@@ -48,7 +48,9 @@
  "OptionFactions1": -1,
  "OptionFactions2": -1,
  "Options": [
-  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I'll finish the goblin task."},"OptionSlot":0}
+  {"Option":{"Dialog":22,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Remind me how to approach the goblins."},"OptionSlot":0},
+  {"Option":{"Dialog":19,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Can I ask about something else?"},"OptionSlot":1},
+  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I'll check my progress."},"OptionSlot":2}
  ],
  "DialogMail": {
   "Sender": "",

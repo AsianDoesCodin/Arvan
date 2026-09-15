@@ -40,7 +40,7 @@
  "DialogShowWheel": 0,
  "DialogSound": "",
  "DialogStopMusic": 0,
- "DialogText": "Kill 3 packwolves, then return here to turn in the hunt. Check your quest progress to see how many remain. Keep watching your flanks. We will discuss the mana cores after this task is finished.",
+ "DialogText": "How is the packwolf hunt going? The task calls for 3 packwolves. Your quest journal will tell you how far you have come. If the hunt is not finished, keep watching your flanks and do not let the pack surround you. If all three are down, turn in the hunt with me. The mana cores can wait until this work is settled.",
  "DialogTitle": "The Packwolf Hunt",
  "ModRev": 18,
  "OptionFaction1Points": 0,
@@ -48,7 +48,9 @@
  "OptionFactions1": -1,
  "OptionFactions2": -1,
  "Options": [
-  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I'll finish the hunt."},"OptionSlot":0}
+  {"Option":{"Dialog":25,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I could use some advice about the pack."},"OptionSlot":0},
+  {"Option":{"Dialog":19,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Can I ask about something else?"},"OptionSlot":1},
+  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I'll check the hunt."},"OptionSlot":2}
  ],
  "DialogMail": {
   "Sender": "",

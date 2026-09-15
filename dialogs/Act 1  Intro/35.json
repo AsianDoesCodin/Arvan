@@ -1,13 +1,13 @@
 {
  "AvailabilityDayTime": 0,
- "AvailabilityDialog": 0,
+ "AvailabilityDialog": 1,
  "AvailabilityDialog2": 0,
  "AvailabilityDialog2Id": -1,
  "AvailabilityDialog3": 0,
  "AvailabilityDialog3Id": -1,
  "AvailabilityDialog4": 0,
  "AvailabilityDialog4Id": -1,
- "AvailabilityDialogId": -1,
+ "AvailabilityDialogId": 34,
  "AvailabilityFaction": 0,
  "AvailabilityFaction2": 0,
  "AvailabilityFaction2Id": -1,
@@ -40,7 +40,7 @@
  "DialogShowWheel": 0,
  "DialogSound": "",
  "DialogStopMusic": 0,
- "DialogText": "You arrived here as a stranger. Now the road is safer, the wolves have been pushed back, and we have six mana cores to examine. Take some time to rest. There will be more work in time, but you have finished the three tasks I asked of you.",
+ "DialogText": "Welcome back. The road is safer, the packwolves have been pushed back, and we have your six mana cores to study. You have finished the three tasks I asked of you. Take some time to rest, or ask what you need to know about Valemont. You do not have to be on an errand to speak with me.",
  "DialogTitle": "A Place in Valemont",
  "ModRev": 18,
  "OptionFaction1Points": 0,
@@ -48,7 +48,8 @@
  "OptionFactions1": -1,
  "OptionFactions2": -1,
  "Options": [
-  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I'll be ready."},"OptionSlot":0}
+  {"Option":{"Dialog":19,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I have a question about Valemont."},"OptionSlot":0},
+  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I'll see you around."},"OptionSlot":1}
  ],
  "DialogMail": {
   "Sender": "",

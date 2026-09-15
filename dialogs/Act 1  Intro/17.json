@@ -1,13 +1,13 @@
 {
  "AvailabilityDayTime": 0,
- "AvailabilityDialog": 0,
+ "AvailabilityDialog": 1,
  "AvailabilityDialog2": 0,
  "AvailabilityDialog2Id": -1,
  "AvailabilityDialog3": 0,
  "AvailabilityDialog3Id": -1,
  "AvailabilityDialog4": 0,
  "AvailabilityDialog4Id": -1,
- "AvailabilityDialogId": -1,
+ "AvailabilityDialogId": 15,
  "AvailabilityFaction": 0,
  "AvailabilityFaction2": 0,
  "AvailabilityFaction2Id": -1,
@@ -16,8 +16,8 @@
  "AvailabilityFactionStance": 0,
  "AvailabilityMinPlayerLevel": 0,
  "AvailabilityQuest": 2,
- "AvailabilityQuest2": 0,
- "AvailabilityQuest2Id": -1,
+ "AvailabilityQuest2": 4,
+ "AvailabilityQuest2Id": 2,
  "AvailabilityQuest3": 0,
  "AvailabilityQuest3Id": -1,
  "AvailabilityQuest4": 0,
@@ -50,7 +50,7 @@
  "Options": [
   {"Option":{"Dialog":18,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I'll deal with 3 goblins."},"OptionSlot":0},
   {"Option":{"Dialog":22,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Any advice before I go?"},"OptionSlot":1},
-  {"Option":{"Dialog":26,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"About my goblin task."},"OptionSlot":2},
+  {"Option":{"Dialog":19,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I have another question."},"OptionSlot":2},
   {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"Not yet."},"OptionSlot":3}
  ],
  "DialogMail": {

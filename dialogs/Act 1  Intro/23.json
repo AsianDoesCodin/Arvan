@@ -18,8 +18,8 @@
  "AvailabilityQuest": 1,
  "AvailabilityQuest2": 2,
  "AvailabilityQuest2Id": 3,
- "AvailabilityQuest3": 0,
- "AvailabilityQuest3Id": -1,
+ "AvailabilityQuest3": 4,
+ "AvailabilityQuest3Id": 3,
  "AvailabilityQuest4": 0,
  "AvailabilityQuest4Id": -1,
  "AvailabilityQuestId": 2,
@@ -50,7 +50,7 @@
  "Options": [
   {"Option":{"Dialog":24,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I'll hunt 3 packwolves."},"OptionSlot":0},
   {"Option":{"Dialog":25,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"How should I fight the pack?"},"OptionSlot":1},
-  {"Option":{"Dialog":30,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"About my packwolf hunt."},"OptionSlot":2},
+  {"Option":{"Dialog":19,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I have another question."},"OptionSlot":2},
   {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I need to prepare first."},"OptionSlot":3}
  ],
  "DialogMail": {

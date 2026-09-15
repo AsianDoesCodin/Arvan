@@ -46,6 +46,24 @@ Both commands read the draft and print to stdout; they never modify files or con
 
 Review the story once as a player: acceptance must identify the objective, progress must describe what is missing, turn-in must require completion, and the reward must match the request. Keep generated commands out of the draft; record any required scripted behavior in the handoff and implement only through verified APIs when requested.
 
+## Design gotcha: players return; NPC slots are not a linear story
+
+**Fix dialogue-design problems in native dialogue content and availability. Do not modify a working player/NPC script, GUI override, or shared NPC state to compensate unless the user explicitly requests a script change.**
+
+The Arvan user confirmed on 2026-09-15 that their NPC dialog assignments are scanned like an ordered array: the first available dialog opens; unavailable entries are skipped. They report about 12 assignable dialogs. This is project-provided behavior, not a universally verified limit for every CNPC build. NPC assignment positions are separate from response `OptionSlot` positions inside a dialogue.
+
+Design **two things**: the response graph and the NPC's ordered entry list. A graph that starts with a permanently available introduction will repeat that introduction on every visit and hide all later roots. Do not solve this by placing every stage behind the same introductory hub.
+
+For each quest, cover first meeting/briefing, offer, refusal and later reconsideration, acceptance, active/incomplete return, objectives-ready but not yet turned in, completed acknowledgement, next offer, and ordinary post-completion conversation. Players may close any page, ask unrelated questions, leave, reconnect, abandon a task, or revisit before completing it. Advice and lore should remain accessible without restarting or finishing their quest.
+
+Give each entry explicit availability and write the exact slot order. Put specific later-stage entries before earlier/fallback entries. Gate first greetings and one-time acknowledgements with dialogue-read history; do not make repeatable offers unread-only, or declining once will remove the offer. An offer should exclude both active and already-finished states; `Before` alone is not a safe synonym for never accepted. Keep quest attachment on acceptance pages, not progress or greeting pages.
+
+Do not equate objective counts or possession of items with quest turn-in. When a separate ready-to-turn-in native condition is unverified, write the active response conditionally ("If all three are defeated, turn in the task with me") rather than claiming a missing count, paying a reward, or advancing the next quest. Keep native quest/reward definitions unchanged unless their modification is requested and supported.
+
+Validate the **first matching entry** after every interruption, not just whether nodes connect. Test declined/abandoned offers, repeated active visits, readiness without hand-in, hand-in, old read history, and two players at different stages. Also check linked target availability: do not hide an advice page behind a not-active gate when an active quest links to it.
+
+Read [native availability and entry design](references/native-availability.md) for the upstream enum evidence and its exact-build limitations. Arvan's concrete 12-slot plan and per-state text are documented in [Elder Posta native entries](../../docs/elder-posta-native-dialogs.md). A slot plan is not a native NPC export: when NPC bindings are absent from the repository, state that the slot assignment is still required rather than claiming to have applied it on the server.
+
 ## Delivery
 
 For native work, return the edited native-format artifact and a concise account of changed fields, preserved types, and unresolved semantics. Report lexical checks separately from actual CNPC import/runtime tests. Use the bundled exact-build samples where applicable. When matching evidence for the requested native feature is unavailable, say what is missing instead of delivering neutral JSON as completion.

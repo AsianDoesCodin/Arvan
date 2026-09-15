@@ -1,0 +1,19 @@
+{
+  "format": "arvan-native-entry-plan/v1",
+  "npc": "Elder Posta",
+  "slotOrder": [
+    34,
+    35,
+    33,
+    31,
+    28,
+    30,
+    27,
+    23,
+    26,
+    13,
+    15,
+    17
+  ],
+  "notANativeNpcExport": true
+}
