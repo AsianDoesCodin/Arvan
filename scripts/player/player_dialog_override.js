@@ -22,6 +22,95 @@ var API = Java.type("noppes.npcs.api.NpcAPI").Instance()
 // Key = player UUID, Value = { npcEntityId, npcName }
 var activeConversations = {}
 
+/** @param {ICustomNpc} npc @returns {boolean} */
+function isElderPosta(npc) {
+    if (!npc) return false
+    var name = String(npc.getDisplay().getName())
+    return name.replace(/\u00a7[0-9a-fk-or]/gi, "").replace(/^\s+|\s+$/g, "").toLowerCase() === "elder posta"
+}
+
+/** @param {IPlayer} player @returns {boolean} */
+function hasPostaQuestProgress(player) {
+    for (var id = 2; id <= 4; id++) {
+        if (player.hasActiveQuest(id) || player.hasFinishedQuest(id)) return true
+    }
+    return false
+}
+
+/** @param {IPlayer} player @returns {boolean} */
+function hasReadPostaTaskDialog(player) {
+    if (player.hasReadDialog(17) || player.hasReadDialog(18)) return true
+    for (var id = 23; id <= 35; id++) {
+        if (player.hasReadDialog(id)) return true
+    }
+    return false
+}
+
+/**
+ * Select an opening from persisted PLAYER state, never by changing NPC slots.
+ * Use persisted finished state; never infer completion from objective counts.
+ * @param {IPlayer} player
+ * @returns {number}
+ */
+function getElderPostaEntryId(player) {
+    // Check the furthest stage first, including migrated/partially reset saves.
+    if (player.hasFinishedQuest(4)) {
+        return player.hasReadDialog(34) || player.hasReadDialog(35) ? 35 : 34
+    }
+    if (player.hasActiveQuest(4)) return 33
+    if (player.hasFinishedQuest(3)) return 31
+    if (player.hasActiveQuest(3)) return 30
+    if (player.hasFinishedQuest(2)) return 27
+    if (player.hasActiveQuest(2)) return 26
+
+    // Declining or abandoning a task must not replay the first meeting.
+    if (player.hasReadDialog(15) || hasReadPostaTaskDialog(player)) return 17
+    if (player.hasReadDialog(13) || player.hasReadDialog(14) || player.hasFinishedQuest(1)) return 15
+    return 13
+}
+
+/**
+ * Native gates remain authoritative; add one-time meeting/briefing guards.
+ * Used for opening, displayed choices, and server-side navigation alike.
+ * @param {IDialog} dlg
+ * @param {ICustomNpc} npc
+ * @param {IPlayer} player
+ * @returns {boolean}
+ */
+function isConversationDialogAvailable(dlg, npc, player) {
+    if (!dlg || !dlg.getAvailability().isAvailable(player)) return false
+    if (!isElderPosta(npc)) return true
+    var id = Number(dlg.getId())
+    if (id === 13) return getElderPostaEntryId(player) === 13
+    if (id === 15) {
+        return !player.hasReadDialog(15) && !hasPostaQuestProgress(player) && !hasReadPostaTaskDialog(player)
+    }
+    return true
+}
+
+/**
+ * Redirect only Posta's known Act 1 entries; other NPCs and future acts pass through.
+ * ID 12 is the legacy referral, not Posta's meeting (13). Never restart its quest
+ * merely because an old NPC slot still points to it.
+ * @param {IPlayer} player
+ * @param {ICustomNpc} npc
+ * @param {IDialog} requested
+ * @returns {IDialog}
+ */
+function resolveConversationEntry(player, npc, requested) {
+    if (!requested || !isElderPosta(npc)) return requested
+    var requestedId = Number(requested.getId())
+    if (!(requestedId >= 12 && requestedId <= 15) && !(requestedId >= 17 && requestedId <= 35)) return requested
+
+    var id = getElderPostaEntryId(player)
+    var entry = id === requestedId ? requested : API.getDialogs().get(id)
+    // The original meeting is external to this repo. A standalone installation
+    // can use the stored briefing, but must not silently skip an active talk quest.
+    if (!entry && id === 13 && !player.hasActiveQuest(1)) entry = API.getDialogs().get(15)
+    if (!entry) throw new Error("Elder Posta entry dialog " + id + " is missing")
+    return entry
+}
+
 /**
  * Serialize a dialog into a plain object for the browser.
  * @param {IDialog} dlg
@@ -36,7 +125,7 @@ function serializeDialog(dlg, npc, player) {
         var opt = optList.get(i)
         if (!opt || !opt.getName() || opt.getName() === "") continue
         var type = opt.getType() // 0=QUIT, 1=DIALOG, 2=DISABLED, 3=ROLE, 4=COMMAND
-        if (type === 1 && (!opt.hasDialog() || !opt.getDialog().getAvailability().isAvailable(player))) continue
+        if (type === 1 && (!opt.hasDialog() || !isConversationDialogAvailable(opt.getDialog(), npc, player))) continue
         options.push({
             slot: opt.getSlot(),
             title: opt.getName(),
@@ -125,6 +214,18 @@ function dialog(e) {
     // Cancel the vanilla dialog UI
     e.setCanceled(true)
 
+    // Resolve before recording state or running the original opening's side effects.
+    try {
+        dlg = resolveConversationEntry(player, npc, dlg)
+        if (!isConversationDialogAvailable(dlg, npc, player)) {
+            throw new Error("Opening dialog is unavailable for this player")
+        }
+    } catch (ex) {
+        delete activeConversations[player.getUUID()]
+        player.message("§c[Dialog] " + ex)
+        return
+    }
+
     // Store conversation state
     activeConversations[player.getUUID()] = {
         npc: npc,
@@ -186,7 +287,7 @@ function htmlGuiEvent(e) {
             }
 
             var conv = activeConversations[player.getUUID()]
-            if (!conv || !nextDialog.getAvailability().isAvailable(player)) return
+            if (!conv || !isConversationDialogAvailable(nextDialog, conv.npc, player)) return
             var currentOptions = conv.dialog.getOptions()
             var linked = false
             for (var i = 0; i < currentOptions.size(); i++) {
