@@ -106,6 +106,14 @@ body{padding:14px}
 @media(max-height:650px){body{padding:8px}#markerAtlas{width:calc(100vw - 16px);height:calc(100vh - 16px);padding:16px}#markerAtlas .header{padding:6px 12px 10px}#markerAtlas h1{font-size:23px;margin-bottom:3px}#markerAtlas .editorHeading{padding:8px 12px 0}#markerAtlas .editorHeading h2{font-size:18px}#markerAtlas .previewIcon{height:34px;width:34px}#markerAtlas .fields{padding:10px 12px}#markerAtlas .formPanel{padding:12px;gap:10px}#markerAtlas input,#markerAtlas select{height:31px;padding:5px 8px;font-size:12px}#markerAtlas .field label,#markerAtlas .fieldLabel{font-size:10px;margin-bottom:5px}#markerAtlas input[type=checkbox]{height:15px;width:15px}#markerAtlas .editorActions,#markerAtlas .footer{padding:7px 12px}#markerAtlas .dimension{padding:7px 9px}#markerAtlas .formPanel .check{font-size:11px;line-height:15px}}
 @media(max-height:540px){#markerAtlas{padding:12px}#markerAtlas .subtitle,#markerAtlas .formPanel .hint{display:none}#markerAtlas .header{padding-bottom:7px}#markerAtlas .editorHeading{padding-top:5px}#markerAtlas .fields{padding:7px 10px}#markerAtlas .formPanel{padding:8px;gap:6px}#markerAtlas input,#markerAtlas select{height:27px;font-size:11px}#markerAtlas input[type=checkbox]{height:14px;width:14px}#markerAtlas .field label,#markerAtlas .fieldLabel{font-size:9px;margin-bottom:4px}#markerAtlas .check{font-size:10px;line-height:12px}#markerAtlas .dimension{padding:5px 8px}#markerAtlas .editorActions,#markerAtlas .footer{padding:5px 10px}}
 </style>
+<style>
+#markerAtlas .fields{overflow:auto}
+#markerAtlas .formGrid{height:auto;min-height:100%;align-content:start}
+#markerAtlas [hidden]{display:none!important}
+#markerAtlas .turninDestination{grid-column:1/-1;display:flex;flex-direction:column;gap:16px;border-top:1px solid #52605a;padding-top:16px}
+#markerAtlas .legacyHint{color:#d0b477;grid-column:1/-1}
+@media(max-height:650px){#markerAtlas .turninDestination{gap:10px;padding-top:10px}}
+</style>
 </head>
 <body>
 <main class="screen" id="markerAtlas">
@@ -132,11 +140,22 @@ body{padding:14px}
           </div>
           <div class="field wide"><label for="name">Marker name</label><input id="name" maxlength="64" placeholder="Name shown on the map" autocomplete="off"></div>
           <div class="field wide"><label for="symbol">Symbol</label><select id="symbol"><option value="!">! &nbsp; Quest</option><option value="?">? &nbsp; Question</option><option value="★">★ &nbsp; Star</option><option value="◆">◆ &nbsp; Diamond</option><option value="✦">✦ &nbsp; Spark</option><option value="⚑">⚑ &nbsp; Flag</option><option value="⌂">⌂ &nbsp; Home</option><option value="⚔">⚔ &nbsp; Battle</option><option value="☠">☠ &nbsp; Danger</option><option value="♦">♦ &nbsp; Gem</option><option value="✚">✚ &nbsp; Healing</option><option value="♨">♨ &nbsp; Rest</option><option value="●">● &nbsp; Circle</option><option value="■">■ &nbsp; Square</option><option value="▲">▲ &nbsp; Triangle</option><option value="✹">✹ &nbsp; Burst</option><option value="☀">☀ &nbsp; Sun</option><option value="☾">☾ &nbsp; Moon</option><option value="⚒">⚒ &nbsp; Workshop</option><option value="✪">✪ &nbsp; Objective</option><option value="⊕">⊕ &nbsp; Target</option><option value="⬟">⬟ &nbsp; Shield</option><option value="♜">♜ &nbsp; Tower</option><option value="♛">♛ &nbsp; Crown</option></select></div>
-          <label class="check wide"><input id="turnin" type="checkbox"><span><strong>turnin</strong><br>Show this destination when all quest objectives are complete.</span></label>
+          <p id="legacyTurninHint" class="hint legacyHint" hidden>This saved marker is turn-in-only and stays that way. Enable Turn-in below only to convert it to an objective with a separate return destination.</p>
+          <label class="check wide" id="turninControl"><input id="turnin" type="checkbox" aria-controls="turninDestination" aria-expanded="false"><span><strong>Turn-in</strong><br>Add a second destination to use when all quest objectives are complete.</span></label>
           </div>
           <div class="formPanel">
-          <div class="field wide destination"><div class="positionHeading"><span class="fieldLabel">Destination</span><button type="button" id="myPos" class="cyan">My Pos</button></div><div class="coordinates"><div><label for="x">X</label><input id="x" type="number" step="any" min="-29999984" max="29999984"></div><div><label for="y">Y</label><input id="y" type="number" step="1" min="-2048" max="2047"></div><div><label for="z">Z</label><input id="z" type="number" step="any" min="-29999984" max="29999984"></div></div></div>
+          <div class="field wide destination"><div class="positionHeading"><span class="fieldLabel" id="destinationTitle">Objective destination</span><button type="button" id="myPos" class="cyan">My Pos</button></div><div class="coordinates"><div><label for="x">X</label><input id="x" type="number" step="any" min="-29999984" max="29999984"></div><div><label for="y">Y</label><input id="y" type="number" step="1" min="-2048" max="2047"></div><div><label for="z">Z</label><input id="z" type="number" step="any" min="-29999984" max="29999984"></div></div></div>
           <div class="field wide"><span class="fieldLabel">Dimension</span><div id="dimensionLabel" class="dimension">Unknown dimension</div><p class="hint">My Pos copies your current X, Y, Z and dimension.</p></div>
+          <section id="turninDestination" class="turninDestination" aria-label="Turn-in destination" hidden>
+            <div class="field destination"><div class="positionHeading"><span class="fieldLabel">Turn-in destination</span><button type="button" id="turninMyPos" class="cyan">My Pos</button></div>
+              <div class="coordinates">
+                <div><label for="turninX">X</label><input id="turninX" type="number" step="any" min="-29999984" max="29999984"></div>
+                <div><label for="turninY">Y</label><input id="turninY" type="number" step="1" min="-2048" max="2047"></div>
+                <div><label for="turninZ">Z</label><input id="turninZ" type="number" step="any" min="-29999984" max="29999984"></div>
+              </div>
+            </div>
+            <div class="field"><span class="fieldLabel">Turn-in dimension</span><div id="turninDimensionLabel" class="dimension">Unknown dimension</div><p class="hint">This My Pos button changes only the turn-in destination. Objective coordinates stay unchanged.</p></div>
+          </section>
           <label class="check wide"><input id="showOutside" type="checkbox" checked><span>Show at the map edge when outside the view</span></label>
           </div>
         </div>
@@ -152,6 +171,8 @@ var markers = state.markers || []
 var player = state.player || {}
 var admin = state.admin === true
 var draftDimension = {}
+var draftTurninDimension = {}
+var legacyTurninOnly = false
 var dirty = false
 var draftRevision = 0
 var draftGeneration = 0
@@ -195,7 +216,20 @@ function updateEditor() {
     var selected = element("markerId").value !== ""
     element("questField").style.visibility = element("mode").value === "QUEST" ? "visible" : "hidden"
     element("questId").disabled = !admin || element("mode").value !== "QUEST"
-    element("turnin").disabled = !admin || element("mode").value !== "QUEST"
+    var questMode = element("mode").value === "QUEST"
+    var paired = questMode && element("turnin").checked
+    element("turninControl").hidden = !questMode
+    element("turnin").disabled = !admin || !questMode
+    element("turnin").setAttribute("aria-expanded", paired ? "true" : "false")
+    element("turninDestination").hidden = !paired
+    element("turninX").disabled = !admin || !paired
+    element("turninY").disabled = !admin || !paired
+    element("turninZ").disabled = !admin || !paired
+    element("turninMyPos").disabled = !admin || !paired || pending !== null
+    element("turninDimensionLabel").textContent = dimensionLabel(draftTurninDimension)
+    element("legacyTurninHint").hidden = !questMode || !legacyTurninOnly
+    element("destinationTitle").textContent = !questMode ? "Destination" :
+        legacyTurninOnly && !paired ? "Turn-in destination (legacy)" : "Objective destination"
     element("previewIcon").textContent = element("symbol").value || "!"
     element("editorTitle").textContent = admin ? (selected ? "Edit marker" : "New marker") : "Marker details"
     element("draftState").textContent = !admin ? "Read only" : dirty ? "Unsaved changes" : selected ? "Saved marker" : "Not saved yet"
@@ -232,7 +266,13 @@ function loadDraft(marker) {
     element("y").value = text(marker.y == null ? player.y : marker.y)
     element("z").value = text(marker.z)
     element("showOutside").checked = marker.showOutside !== false
-    element("turnin").checked = marker.turnin === true
+    var destination = marker.turninDestination || {}
+    element("turnin").checked = marker.mode !== "ALWAYS" && !!marker.turninDestination
+    legacyTurninOnly = marker.turnin === true && !marker.turninDestination
+    element("turninX").value = text(destination.x)
+    element("turninY").value = text(destination.y)
+    element("turninZ").value = text(destination.z)
+    draftTurninDimension = dimensionOf(destination)
     draftDimension = dimensionOf(marker)
     updateEditor()
     renderMarkers()
@@ -253,7 +293,8 @@ function renderMarkers() {
     var filtered = []
     for (var f = 0; f < markers.length; f++) {
         var candidate = markers[f]
-        var searchText = text(candidate.name) + " " + (candidate.mode === "ALWAYS" ? "Always visible" : "Quest #" + candidate.questId) + " " + dimensionLabel(candidate) + (candidate.turnin ? " turnin" : "")
+        var searchText = text(candidate.name) + " " + (candidate.mode === "ALWAYS" ? "Always visible" : "Quest #" + candidate.questId) + " " + dimensionLabel(candidate) + (candidate.turnin || candidate.turninDestination ? " turnin" : "") +
+            (candidate.turninDestination ? " " + dimensionLabel(candidate.turninDestination) : "")
         if (searchText.toLowerCase().indexOf(query) >= 0) filtered.push(candidate)
     }
     var pageSize = Math.max(1, Math.floor(list.clientHeight / 76))
@@ -265,7 +306,7 @@ function renderMarkers() {
     list.textContent = ""
     for (var i = markerPage * pageSize; i < Math.min(filtered.length, (markerPage + 1) * pageSize); i++) {
         var marker = filtered[i]
-        var modeLabel = marker.mode === "ALWAYS" ? "Always visible" : "Quest #" + marker.questId + (marker.turnin ? " · Turn-in" : " · Objective")
+        var modeLabel = marker.mode === "ALWAYS" ? "Always visible" : "Quest #" + marker.questId + (marker.turninDestination ? " · Objective + Turn-in" : marker.turnin ? " · Turn-in" : " · Objective")
         var dimension = dimensionLabel(marker)
         var row = document.createElement("button")
         var icon = document.createElement("span")
@@ -324,7 +365,7 @@ function send(action, data, message) {
         window.cnpc.sendEvent("quest_map", data)
         return true
     }
-    pending = { id: data.actionRequestId, action: action, revision: draftRevision, generation: draftGeneration, markerId: element("markerId").value }
+    pending = { id: data.actionRequestId, action: action, revision: draftRevision, generation: draftGeneration, markerId: element("markerId").value, destination: data.destination || "objective" }
     if (action === "ready" || action === "refresh" || action === "save" || action === "delete") markerBatchId = data.actionRequestId
     setStatus(message)
     updateEditor()
@@ -358,7 +399,19 @@ function saveMarker() {
     data.y = y
     data.z = z
     data.showOutside = element("showOutside").checked
-    data.turnin = mode === "QUEST" && element("turnin").checked
+    var paired = mode === "QUEST" && element("turnin").checked
+    data.turnin = mode === "QUEST" && legacyTurninOnly && !paired
+    data.turninDestination = null
+    if (paired) {
+        var tx = element("turninX").value.trim(), ty = element("turninY").value.trim(), tz = element("turninZ").value.trim()
+        if (!tx || !tz || !isFinite(Number(tx)) || !isFinite(Number(tz)) || Math.abs(Number(tx)) > 29999984 || Math.abs(Number(tz)) > 29999984) return setStatus("Enter valid turn-in X and Z coordinates within the world border.", false)
+        if (!ty || !isFinite(Number(ty)) || Number(ty) !== Math.floor(Number(ty)) || Number(ty) < -2048 || Number(ty) > 2047) return setStatus("Enter a whole-number turn-in Y from -2048 to 2047.", false)
+        if (!draftTurninDimension.dimensionId && draftTurninDimension.dimension == null && !draftTurninDimension.dimensionName) return setStatus("Use the turn-in My Pos button to set its dimension.", false)
+        data.turninDestination = dimensionOf(draftTurninDimension)
+        data.turninDestination.x = Number(tx)
+        data.turninDestination.y = Number(ty)
+        data.turninDestination.z = Number(tz)
+    }
     send("save", data, "Saving marker...")
 }
 
@@ -376,12 +429,22 @@ function receiveMeta(data) {
     if (update.player) player = update.player
     if (request && requestId && update.ok !== false && request.generation === draftGeneration) {
         if (request.action === "mypos" && update.action === "mypos" && update.player) {
-            element("x").value = text(player.x)
-            element("y").value = text(player.y)
-            element("z").value = text(player.z)
-            draftDimension = dimensionOf(player)
-            dirty = true
-            draftRevision++
+            // Ignore a late position response after the user edits or switches drafts.
+            if (request.revision === draftRevision) {
+                if (request.destination === "turnin") {
+                    element("turninX").value = text(player.x)
+                    element("turninY").value = text(player.y)
+                    element("turninZ").value = text(player.z)
+                    draftTurninDimension = dimensionOf(player)
+                } else {
+                    element("x").value = text(player.x)
+                    element("y").value = text(player.y)
+                    element("z").value = text(player.z)
+                    draftDimension = dimensionOf(player)
+                }
+                dirty = true
+                draftRevision++
+            }
         } else if (request.action === "save") {
             if (update.markerId) element("markerId").value = text(update.markerId)
             if (request.revision === draftRevision) dirty = false
@@ -431,6 +494,10 @@ element("y").oninput = markDirty
 element("z").oninput = markDirty
 element("showOutside").onchange = markDirty
 element("turnin").onchange = markDirty
+element("turninX").oninput = markDirty
+element("turninY").oninput = markDirty
+element("turninZ").oninput = markDirty
+element("turninMyPos").onclick = function() { send("mypos", { destination: "turnin" }, "Getting your turn-in position...") }
 element("search").oninput = function() { markerPage = 0; renderMarkers() }
 element("markerPrevious").onclick = function() { markerPage--; renderMarkers() }
 element("markerNext").onclick = function() { markerPage++; renderMarkers() }

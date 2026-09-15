@@ -11530,6 +11530,37 @@ function normalizeQuestMapMarkerId(value, fallback, occupied) {
     return markerId
 }
 
+// Optional second destination. Legacy turnin-only records keep their old flag.
+function normalizeQuestMapTurninDestination(source) {
+    if (source === undefined || source === null) return null
+    if (typeof source !== "object" || Array.isArray(source)) throw new Error("Invalid turn-in destination.")
+    var keys = ["x", "y", "z"]
+    for (var i = 0; i < keys.length; i++) {
+        var value = source[keys[i]]
+        if (value === undefined || value === null || typeof value === "boolean" ||
+            String(value).trim() === "" || !isFinite(Number(value))) {
+            throw new Error("Enter all turn-in X/Y/Z coordinates.")
+        }
+    }
+    var x = Number(source.x), y = Number(source.y), z = Number(source.z)
+    if (Math.abs(x) > 29999984 || Math.abs(z) > 29999984 ||
+        y !== Math.floor(y) || y < -2048 || y > 2047) {
+        throw new Error("Check turn-in X/Z bounds and whole-number Y (-2048 to 2047).")
+    }
+    var id = String(source.dimensionId || "").trim()
+    var name = String(source.dimensionName || "").trim()
+    var dimension = source.dimension === undefined || source.dimension === null ||
+        String(source.dimension).trim() === "" ? null : Number(source.dimension)
+    if ((id && !/^[a-z0-9_.-]+:[a-z0-9_./-]+$/.test(id)) ||
+        name.length > 128 || /[\u0000-\u001f\u007f]/.test(name) ||
+        (dimension !== null && (!isFinite(dimension) || dimension !== Math.floor(dimension))) ||
+        (!id && !name && dimension === null)) {
+        throw new Error("Use the turn-in My Pos button to select a valid dimension.")
+    }
+    return { x: Math.floor(x), y: y, z: Math.floor(z), dimensionId: id,
+        dimension: dimension, dimensionName: name }
+}
+
 function getQuestMapRegistry(world, strict) {
     var stored = world.getStoreddata()
     if (!stored.has(QUEST_MAP_STORAGE_KEY)) return {}
@@ -11552,6 +11583,7 @@ function getQuestMapRegistry(world, strict) {
                 symbol: String(source.symbol || (mode === "QUEST" ? "!" : "◆")),
                 showOutside: source.showOutside !== false,
                 turnin: source.turnin === true,
+                turninDestination: normalizeQuestMapTurninDestination(source.turninDestination),
                 x: Number(source.x),
                 y: source.y === undefined || source.y === null ? null : Number(source.y),
                 z: Number(source.z),
@@ -11682,30 +11714,38 @@ function buildQuestMapMarkers(player, adminMode) {
     for (var i = 0; i < ids.length; i++) {
         var marker = registry[ids[i]]
         if (!marker) continue
+        var destination = marker
+        var turnin = marker.turnin === true
         if (!adminMode && marker.mode === "QUEST") {
             var questKey = String(Number(marker.questId))
             if (!activeQuestIds[questKey] || !isQuestTracked(player, marker.questId)) continue
             if (!Object.prototype.hasOwnProperty.call(readyQuests, questKey)) {
                 readyQuests[questKey] = playerMenuQuest(API.getQuests().get(Number(marker.questId)), false, player).ready
             }
-            if ((marker.turnin === true) !== readyQuests[questKey]) continue
+            if (marker.turninDestination) {
+                turnin = readyQuests[questKey] === true
+                if (turnin) destination = marker.turninDestination
+            } else if ((marker.turnin === true) !== readyQuests[questKey]) continue
         }
-        markers.push({
+        var rendered = {
             markerId: String(marker.markerId),
             mode: String(marker.mode),
             questId: Number(marker.questId),
             name: String(marker.name || (marker.mode === "QUEST" ? getQuestMapName(marker.questId, "") : "Point of Interest")),
             symbol: String(marker.symbol || (marker.mode === "QUEST" ? "!" : "◆")),
             showOutside: marker.showOutside !== false,
-            turnin: marker.turnin === true,
-            x: Number(marker.x),
-            y: marker.y === null || marker.y === undefined || !isFinite(Number(marker.y))
-                ? Math.floor(player.getY()) : Math.floor(Number(marker.y)),
-            z: Number(marker.z),
-            dimensionId: String(marker.dimensionId || ""),
-            dimension: Number(marker.dimension),
-            dimensionName: String(marker.dimensionName || "")
-        })
+            turnin: turnin,
+            x: Number(destination.x),
+            y: destination.y === null || destination.y === undefined || !isFinite(Number(destination.y))
+                ? Math.floor(player.getY()) : Math.floor(Number(destination.y)),
+            z: Number(destination.z),
+            dimensionId: String(destination.dimensionId || ""),
+            dimension: Number(destination.dimension),
+            dimensionName: String(destination.dimensionName || "")
+        }
+        // The editor receives both locations; the map bridge receives only the active one.
+        if (adminMode) rendered.turninDestination = marker.turninDestination
+        markers.push(rendered)
     }
     return markers
 }
@@ -11853,12 +11893,26 @@ function handleQuestMapHtmlEvent(e) {
         pushQuestMapMeta(player, true, "Use My Pos to select a valid dimension.", false, data.actionRequestId, action)
         return
     }
+    var turninDestination = null
+    try {
+        if (mode === "QUEST") {
+            // An older editor omits the field: preserve a saved second destination.
+            // The new editor sends null explicitly when the checkbox is disabled.
+            var turninSource = Object.prototype.hasOwnProperty.call(data, "turninDestination")
+                ? data.turninDestination : (registry[markerId] ? registry[markerId].turninDestination : null)
+            turninDestination = normalizeQuestMapTurninDestination(turninSource)
+        }
+    } catch (error) {
+        pushQuestMapMeta(player, true, String(error.message || error), false, data.actionRequestId, action)
+        return
+    }
     registry[markerId] = {
         markerId: markerId, mode: mode, questId: mode === "QUEST" ? questId : 0,
         name: String(name || (quest ? quest.getName() : "Point of Interest")).substring(0, 64),
         symbol: symbol || (mode === "QUEST" ? "!" : "◆"),
         showOutside: data.showOutside === true || String(data.showOutside) === "true",
-        turnin: mode === "QUEST" && (data.turnin === true || String(data.turnin) === "true"),
+        turnin: mode === "QUEST" && !turninDestination && (data.turnin === true || String(data.turnin) === "true"),
+        turninDestination: turninDestination,
         x: Math.floor(x), y: y, z: Math.floor(z), dimensionId: dimensionId,
         dimension: data.dimension === undefined ? state.dimension : Number(data.dimension),
         dimensionName: dimensionName
