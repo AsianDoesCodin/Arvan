@@ -42,6 +42,8 @@ jobs:
           for item in manifest['files']:
               original = base64.b64decode(api('/git/blobs/' + item['sha'])['content'])
               assert blob_sha(original) == item['sha'], 'Original blob mismatch'
+              if item['path'].endswith('ADMsLevelingSystem.js'):
+                  Path('baseline.js').write_bytes(original)
               original_text = original.decode('utf-8', errors='surrogateescape')
               text = original_text
               for change in item['edits']:
@@ -68,7 +70,16 @@ jobs:
                   assert text.count(bad) <= original_text.count(bad), 'New encoding corruption'
               assert [c for c in text if '\udc80' <= c <= '\udcff'] == [c for c in original_text if '\udc80' <= c <= '\udcff'], 'Unrelated legacy bytes changed'
               changed.append(item['path'])
-          subprocess.run(['node', '--check', 'scripts/player/ADMsLevelingSystem.js'], check=True)
+          source_path = 'scripts/player/ADMsLevelingSystem.js'
+          baseline = subprocess.run(['node', '--check', 'baseline.js'], capture_output=True)
+          updated = subprocess.run(['node', '--check', source_path], capture_output=True)
+          if baseline.returncode:
+              before = baseline.stderr.replace(str(Path('baseline.js').resolve()).encode(), b'SOURCE')
+              after = updated.stderr.replace(str(Path(source_path).resolve()).encode(), b'SOURCE')
+              assert updated.returncode == baseline.returncode and before == after, 'Unexpected whole-file syntax difference'
+              print('BASELINE_SYNTAX_BLOCKER_UNCHANGED: uploaded script is corrupt at line 8559; whole-file parsing has NOT passed.', flush=True)
+          else:
+              assert updated.returncode == 0, updated.stderr.decode(errors='replace')
           subprocess.run(['node', '--test', 'scripts/tests/quest-map.test.cjs'], check=True)
           changed.append('scripts/tests/quest-map.test.cjs')
           for path in changed:
