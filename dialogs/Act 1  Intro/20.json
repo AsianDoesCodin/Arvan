@@ -40,7 +40,7 @@
  "DialogShowWheel": 0,
  "DialogSound": "",
  "DialogStopMusic": 0,
- "DialogText": "Valemont was a home before it became a watchpost. Families still sleep behind these walls, and people still need the roads. We cannot abandon all of that because the portal has become dangerous. Every threat you remove gives someone here a little more room to live.",
+ "DialogText": "You are in Valemont, a village in the Six Faced World. That portal is why we keep watch at the walls. It spills more mana into the countryside than this land can disperse. Where enough mana particles collide, a monster can take shape. Those creatures have no parents; mana itself gives them a body. We are still searching for a way to close the portal. Until then, we protect the people living beside it. Valemont was a home before it became a watchpost. Families still sleep behind these walls, and people still need the roads. We cannot abandon all of that because the portal has become dangerous. Every threat you remove gives someone here a little more room to live.",
  "DialogTitle": "A Village Beside a Portal",
  "ModRev": 18,
  "OptionFaction1Points": 0,
@@ -49,7 +49,8 @@
  "OptionFactions2": -1,
  "Options": [
   {"Option":{"Dialog":19,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I have another question."},"OptionSlot":0},
-  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I understand."},"OptionSlot":1}
+  {"Option":{"Dialog":15,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"How can I help?"},"OptionSlot":1},
+  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I understand."},"OptionSlot":2}
  ],
  "DialogMail": {
   "Sender": "",

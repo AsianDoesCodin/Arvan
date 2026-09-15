@@ -51,7 +51,8 @@
   {"Option":{"Dialog":20,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"What is Valemont?"},"OptionSlot":0},
   {"Option":{"Dialog":21,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"How does mana create a monster?"},"OptionSlot":1},
   {"Option":{"Dialog":22,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"How should I approach the goblins?"},"OptionSlot":2},
-  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"That's all for now."},"OptionSlot":3}
+  {"Option":{"Dialog":15,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Back to work and tasks."},"OptionSlot":3},
+  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"That's all for now."},"OptionSlot":4}
  ],
  "DialogMail": {
   "Sender": "",

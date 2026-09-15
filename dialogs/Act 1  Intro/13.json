@@ -18,10 +18,10 @@
  "AvailabilityQuest": 2,
  "AvailabilityQuest2": 4,
  "AvailabilityQuest2Id": 2,
- "AvailabilityQuest3": 0,
- "AvailabilityQuest3Id": -1,
- "AvailabilityQuest4": 0,
- "AvailabilityQuest4Id": -1,
+ "AvailabilityQuest3": 2,
+ "AvailabilityQuest3Id": 3,
+ "AvailabilityQuest4": 2,
+ "AvailabilityQuest4Id": 4,
  "AvailabilityQuestId": 2,
  "AvailabilityScoreboard2Objective": "",
  "AvailabilityScoreboard2Type": 1,
@@ -48,9 +48,10 @@
  "OptionFactions1": -1,
  "OptionFactions2": -1,
  "Options": [
-  {"Option":{"Dialog":15,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Tell me about Valemont."},"OptionSlot":0},
-  {"Option":{"Dialog":19,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I have some questions first."},"OptionSlot":1},
-  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I'll come back to hear more."},"OptionSlot":2}
+  {"Option":{"Dialog":20,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Tell me about Valemont."},"OptionSlot":0},
+  {"Option":{"Dialog":15,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"How can I help?"},"OptionSlot":1},
+  {"Option":{"Dialog":19,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I have some questions."},"OptionSlot":2},
+  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I'll come back shortly."},"OptionSlot":3}
  ],
  "DialogMail": {
   "Sender": "",

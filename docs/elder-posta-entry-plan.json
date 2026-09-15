@@ -2,18 +2,45 @@
   "format": "arvan-native-entry-plan/v1",
   "npc": "Elder Posta",
   "slotOrder": [
-    34,
     35,
     33,
-    31,
-    28,
     30,
-    27,
-    23,
     26,
     13,
-    15,
-    17
+    15
   ],
-  "notANativeNpcExport": true
+  "startingDialogs": [
+    {
+      "id": 35,
+      "title": "A Place in Valemont",
+      "when": "Quest 4 finished"
+    },
+    {
+      "id": 33,
+      "title": "Bring Back Six Cores",
+      "when": "Quest 4 active"
+    },
+    {
+      "id": 30,
+      "title": "The Packwolf Hunt",
+      "when": "Quest 3 active; quest 4 not finished"
+    },
+    {
+      "id": 26,
+      "title": "Goblins Still to Deal With",
+      "when": "Quest 2 active; quests 3 and 4 not finished"
+    },
+    {
+      "id": 13,
+      "title": "A New Face in Valemont",
+      "when": "First meeting, without later quest progress"
+    },
+    {
+      "id": 15,
+      "title": "Work and Questions",
+      "when": "Repeatable fallback; must be last"
+    }
+  ],
+  "notANativeNpcExport": true,
+  "note": "Only these six are NPC starting assignments. All other records are reply-linked children; leave remaining NPC slots empty."
 }

@@ -74,127 +74,163 @@ function choices(id, p) { return dialogs.get(id).options.filter(o => o.type === 
 function choose(from, to, p) { assert.ok(choices(from, p).includes(to), `${from} -> ${to}`); return open(to, p); }
 function turnIn(p, qid) { p.active.delete(qid); p.finished.add(qid); }
 
-test('exactly 12 distinct ordered native opening IDs; referral 12 is not Posta', () => {
-  assert.deepEqual(plan.slotOrder, [34, 35, 33, 31, 28, 30, 27, 23, 26, 13, 15, 17]);
-  assert.equal(new Set(plan.slotOrder).size, 12);
+// Explore reply links without accepting another quest. Read gates are evaluated
+// at each hop, not once at the root. A terminal page always permits leaving.
+function copy(p) { return state({read: [...p.read], active: [...p.active], finished: [...p.finished]}); }
+function reachable(from, p) {
+  const seen = new Set(), queue = [[from, copy(p)]];
+  while (queue.length) {
+    const [id, q] = queue.shift();
+    if (seen.has(id)) continue;
+    open(id, q); seen.add(id);
+    for (const target of choices(id, q)) {
+      if (dialogs.get(target).number('DialogQuest') < 0) queue.push([target, copy(q)]);
+      else seen.add(target); // Acceptance is reachable, but is not auto-selected.
+    }
+  }
+  return seen;
+}
+const stages = [
+  {quest: 2, topic: 17, accept: 18, progress: 26, advice: 22, prior: []},
+  {quest: 3, topic: 23, accept: 24, progress: 30, advice: 25, prior: [2]},
+  {quest: 4, topic: 28, accept: 29, progress: 33, advice: 32, prior: [2,3]}
+];
+
+test('six intentional starting roots, exact title-first plan, no child assignments', () => {
+  assert.deepEqual(plan.slotOrder, [35,33,30,26,13,15]);
+  assert.equal(new Set(plan.slotOrder).size, 6);
   assert.equal(plan.notANativeNpcExport, true);
+  assert.deepEqual(plan.startingDialogs.map(x => x.id), plan.slotOrder);
+  for (const item of plan.startingDialogs) assert.equal(dialogs.get(item.id).scalar('DialogTitle').raw, JSON.stringify(item.title));
+  for (const child of [17,18,19,20,21,22,23,24,25,27,28,29,31,32,34]) assert.ok(!plan.slotOrder.includes(child));
 });
-test('21 native records parse without stripping suffixes; all links and exits exist', () => {
+test('all 21 native records preserve typed longs, valid links, slots, and exits', () => {
   assert.equal(dialogs.size, 21);
-  for (const [id, d] of dialogs) {
+  for (const [id,d] of dialogs) {
     assert.equal(d.number('ModRev'), 18);
-    assert.equal(d.number('DialogHideNPC'), 0);
-    assert.equal(d.number('DialogHideNpc'), 0);
+    assert.equal(d.number('DialogHideNPC'), 0); assert.equal(d.number('DialogHideNpc'), 0);
     assert.equal(d.map.get('$["DialogMail"]["TimePast"]').raw, '1669491043541L');
     assert.equal(d.map.get('$["DialogMail"]["Time"]').raw, '0L');
+    assert.ok(d.options.length <= 5, 'No expanded option-slot range: ' + id);
     assert.ok(d.options.some(o => o.type === 0 && o.target === -1), 'No exit: ' + id);
-    for (const [i, o] of d.options.entries()) {
-      assert.equal(o.slot, i);
-      assert.ok(o.type === 0 || o.type === 1);
-      if (o.type === 1) assert.ok(dialogs.has(o.target), 'Broken target ' + o.target);
+    for (const [i,o] of d.options.entries()) {
+      assert.equal(o.slot,i); assert.ok(o.type === 0 || o.type === 1);
+      if (o.type === 1) assert.ok(dialogs.has(o.target), 'Missing target ' + o.target);
     }
   }
 });
-test('meeting and briefing each appear once, even when the player closes early', () => {
-  const p = state();
-  assert.equal(visit(p), 13);
-  assert.equal(visit(p), 15);
-  assert.equal(visit(p), 17);
-  assert.equal(visit(p), 17);
-  assert.equal(p.active.size, 0);
+test('only the first meeting is one-time; closing does not advance along NPC slots', () => {
+  const p = state(); assert.equal(visit(p),13);
+  for (let i=0;i<4;i++) assert.equal(visit(p),15);
+  assert.equal(p.active.size,0);
 });
-test('asking lore before the briefing never traps or restarts the player', () => {
-  const p = state(); visit(p); choose(13, 19, p); choose(19, 20, p); choose(20, 19, p);
-  assert.equal(visit(p), 15);
-  assert.equal(visit(p), 17);
+test('world briefing is a linked child; work remains reachable in the same conversation', () => {
+  const p=state(); visit(p); choose(13,20,p); choose(20,15,p); choose(15,17,p); choose(17,18,p);
+  assert.equal(visit(p),26);
+  assert.match(dialogs.get(20).text, /Six Faced World/);
+  assert.match(dialogs.get(20).text, /spills more mana/);
 });
-test('already-read briefing skips an introduction even with missing old meeting history', () => {
-  assert.equal(first(state({ read: [15] })), 17);
+test('a lore detour before work can return to the offer without another right-click', () => {
+  const p=state(); visit(p); choose(13,19,p); choose(19,21,p); choose(21,19,p); choose(19,15,p); choose(15,17,p);
+  assert.ok(choices(17,p).includes(18)); assert.equal(p.active.size,0);
 });
-for (const [qid, offer, accept, progress, previous] of [
-  [2, 17, 18, 26, []], [3, 23, 24, 30, [2]], [4, 28, 29, 33, [2, 3]]
-]) {
-  test('quest ' + qid + ': decline, accept, revisit, abandon, accept again', () => {
-    const p = state({ read: [13, 15, 27, 31], finished: previous });
-    assert.equal(visit(p), offer);
-    assert.equal(p.active.has(qid), false);
-    assert.equal(visit(p), offer);
-    choose(offer, accept, p);
-    assert.equal(visit(p), progress);
-    assert.equal(available(offer, p), false);
-    assert.equal(available(accept, p), false);
-    p.active.delete(qid);
-    assert.equal(visit(p), offer);
-    choose(offer, accept, p);
-    assert.equal(visit(p), progress);
+test('old briefing history never blocks the repeatable hub or replays the greeting', () => {
+  for (const read of [[15],[13],[13,15],[13,15,17,27,31,34,35]]) {
+    const p=state({read}); assert.equal(visit(p),15);
+    choose(15,17,p); assert.equal(visit(p),15);
+  }
+});
+for (const s of stages) {
+  test('quest '+s.quest+': repeatable topic and acceptance survive refusal and abandonment', () => {
+    const p=state({read:[13,15],finished:s.prior});
+    assert.equal(visit(p),15); choose(15,s.topic,p);
+    assert.equal(p.active.size,0); assert.equal(visit(p),15); choose(15,s.topic,p);
+    choose(s.topic,s.accept,p); assert.equal(visit(p),s.progress);
+    assert.equal(available(s.accept,p),false);
+    p.active.delete(s.quest); assert.equal(visit(p),15); choose(15,s.topic,p); choose(s.topic,s.accept,p);
+    assert.deepEqual([...p.active],[s.quest]);
   });
-  test('quest ' + qid + ': active includes objectives-ready until actual turn-in', () => {
-    const p = state({ read: [13, 15], active: [qid], finished: previous });
-    assert.equal(visit(p), progress);
-    // Objective completion is not simulated as hasFinishedQuest.
-    assert.equal(visit(p), progress);
-    assert.equal(p.finished.has(qid), false);
-    assert.equal(dialogs.get(progress).number('DialogQuest'), -1);
+  test('quest '+s.quest+': active topic exposes progress but hides acceptance', () => {
+    const p=state({read:[13,15],active:[s.quest],finished:s.prior});
+    assert.equal(visit(p),s.progress); choose(s.progress,19,p); choose(19,15,p); choose(15,s.topic,p);
+    assert.ok(choices(s.topic,p).includes(s.progress));
+    assert.ok(!choices(s.topic,p).includes(s.accept)); choose(s.topic,s.progress,p);
+    assert.deepEqual([...p.active],[s.quest]); assert.deepEqual([...p.finished],s.prior);
+  });
+  test('quest '+s.quest+': advice and lore return to the active task without reopening', () => {
+    const p=state({read:[13,15],active:[s.quest],finished:s.prior});
+    assert.equal(visit(p),s.progress); choose(s.progress,s.advice,p);
+    const reached=reachable(s.advice,p);
+    assert.ok(reached.has(s.progress)); assert.ok(!reached.has(s.accept));
+    assert.ok(reached.has(19)); assert.ok(reached.has(20)); assert.ok(reached.has(21));
+  });
+  test('quest '+s.quest+': objective readiness is not turn-in', () => {
+    const p=state({read:[13,15],active:[s.quest],finished:s.prior});
+    p.objectivesReady=true; p.coreCount=6; // These must not affect entry selection.
+    assert.equal(visit(p),s.progress); assert.equal(visit(p),s.progress);
+    assert.equal(p.finished.has(s.quest),false); assert.equal(dialogs.get(s.progress).number('DialogQuest'),-1);
+    assert.equal(available(s.accept,p),false);
+  });
+  test('quest '+s.quest+': finished tasks cannot be accepted again', () => {
+    const p=state({read:[13,15],finished:[...s.prior,s.quest]});
+    assert.equal(available(s.topic,p),false); assert.equal(available(s.accept,p),false);
+    const seen=reachable(first(p),p); assert.equal(seen.has(s.accept),false);
   });
 }
-test('packwolf and core advice remain available while their quests are active', () => {
-  const wolves = state({ active: [3], finished: [2] });
-  assert.equal(visit(wolves), 30); choose(30, 25, wolves);
-  assert.ok(choices(25, wolves).includes(30));
-  assert.equal(choices(25, wolves).includes(23), false);
-  const cores = state({ active: [4], finished: [2, 3] });
-  assert.equal(visit(cores), 33); choose(33, 32, cores);
-  assert.ok(choices(32, cores).includes(33));
-  assert.equal(choices(32, cores).includes(28), false);
-});
-test('every active page permits lore and a safe exit without changing quest progress', () => {
-  for (const [qid, progress, finished] of [[2, 26, []], [3, 30, [2]], [4, 33, [2, 3]]]) {
-    const p = state({ read: [13, 15], active: [qid], finished });
-    assert.equal(visit(p), progress); choose(progress, 19, p); choose(19, 21, p); choose(21, 19, p);
-    assert.equal(visit(p), progress);
-    assert.deepEqual([...p.active], [qid]);
-    assert.deepEqual([...p.finished], finished);
+test('one-time acknowledgements are optional descendants, never required resume roots', () => {
+  for (const [done,topic,ack,next] of [[2,23,27,24],[3,28,31,29]]) {
+    const p=state({read:[13,15],finished:done===2?[2]:[2,3]});
+    assert.equal(visit(p),15); choose(15,topic,p); choose(topic,ack,p);
+    assert.equal(visit(p),15); choose(15,topic,p);
+    assert.ok(!choices(topic,p).includes(ack)); assert.ok(choices(topic,p).includes(next));
+    const q=state({read:[13,15],finished:[...p.finished]});
+    visit(q); choose(15,topic,q); choose(topic,next,q); // Skipping acknowledgement is safe too.
   }
 });
-test('transition acknowledgements precede repeatable offers only once', () => {
-  const p = state({ read: [13, 15], finished: [2] });
-  assert.equal(visit(p), 27); assert.equal(visit(p), 23); assert.equal(visit(p), 23);
-  p.finished.add(3);
-  assert.equal(visit(p), 31); assert.equal(visit(p), 28); assert.equal(visit(p), 28);
+test('the ending root is repeatable before and after its optional acknowledgement', () => {
+  const p=state({finished:[2,3,4]}); assert.equal(visit(p),35);
+  choose(35,34,p); assert.equal(visit(p),35); assert.ok(!choices(35,p).includes(34));
+  choose(35,19,p); choose(19,15,p); assert.equal(visit(p),35);
 });
-test('post-completion acknowledgement links to a repeatable conversation', () => {
-  const p = state({ finished: [2, 3, 4] });
-  assert.equal(visit(p), 34); choose(34, 35, p);
-  assert.equal(visit(p), 35); choose(35, 19, p);
-  assert.equal(visit(p), 35);
-});
-test('all 27 active/finished/unstarted task combinations prioritize the furthest stage', () => {
-  for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) for (let c = 0; c < 3; c++) {
-    const statuses = [a, b, c];
-    const p = state({ read: [13, 15], active: statuses.flatMap((s, i) => s === 1 ? [i + 2] : []), finished: statuses.flatMap((s, i) => s === 2 ? [i + 2] : []) });
-    const expected = c === 2 ? 34 : c === 1 ? 33 : b === 2 ? 31 : b === 1 ? 30 : a === 2 ? 27 : a === 1 ? 26 : 17;
-    assert.equal(first(p), expected, String(statuses));
+test('all 27 quest-state combinations and legacy read histories select a valid root', () => {
+  for (const read of [[],[13],[15],[13,15,17,27,31,34,35]]) {
+    for(let a=0;a<3;a++) for(let b=0;b<3;b++) for(let c=0;c<3;c++) {
+      const statuses=[a,b,c]; const p=state({read,active:statuses.flatMap((s,i)=>s===1?[i+2]:[]),finished:statuses.flatMap((s,i)=>s===2?[i+2]:[])});
+      const expected=c===2?35:c===1?33:b===2?15:b===1?30:a===2?15:a===1?26:read.length?15:13;
+      assert.equal(first(p),expected,JSON.stringify({statuses,read}));
+    }
   }
 });
-test('two players use the same slot order without sharing dialogue-read state', () => {
-  const firstTimer = state(), returning = state({ read: [13, 15], active: [2] });
-  assert.equal(visit(firstTimer), 13); assert.equal(visit(returning), 26);
-  assert.equal(visit(firstTimer), 15); assert.equal(visit(returning), 26);
-});
-test('only the three acceptance pages start tasks; no new commands or rewards', () => {
-  for (const [id, d] of dialogs) {
-    assert.equal(d.number('DialogQuest'), ({18: 2, 24: 3, 29: 4})[id] ?? -1);
-    assert.equal(d.scalar('DialogCommand').raw, '""');
-    for (const e of d.entries.filter(e => /\["DialogCommand"\]$/.test(e.path))) assert.equal(e.raw, '""');
+test('fresh right-click after every reachable intermediate page retains the next task', () => {
+  for (const s of stages) {
+    for (const active of [false,true]) {
+      const p=state({read:[13,15],finished:s.prior,active:active?[s.quest]:[]});
+      const start=first(p), pages=reachable(start,p);
+      for(const id of pages) {
+        if(dialogs.get(id).number('DialogQuest')>=0) continue;
+        const q=copy(p); if(!available(id,q)) continue; open(id,q);
+        const again=first(q); assert.equal(again,active?s.progress:15,'Closed at '+id);
+        const recovered=reachable(again,q); assert.ok(recovered.has(active?s.progress:s.accept),'Stranded at '+id);
+      }
+    }
   }
 });
-test('full quest journey permits interruptions and never uses a permanent intro root', () => {
-  const p = state();
-  assert.equal(visit(p), 13); choose(13, 15, p); choose(15, 17, p); choose(17, 18, p);
-  assert.equal(visit(p), 26); turnIn(p, 2);
-  assert.equal(visit(p), 27); choose(27, 23, p); choose(23, 24, p);
-  assert.equal(visit(p), 30); turnIn(p, 3);
-  assert.equal(visit(p), 31); choose(31, 28, p); choose(28, 29, p);
-  assert.equal(visit(p), 33); turnIn(p, 4);
-  assert.equal(visit(p), 34); assert.equal(visit(p), 35); assert.equal(visit(p), 35);
+test('two players share slot order, never dialogue history or quest state', () => {
+  const a=state(),b=state({active:[3],finished:[2]});
+  assert.equal(visit(a),13); assert.equal(visit(b),30);
+  assert.equal(visit(a),15); assert.equal(visit(b),30); assert.equal(a.active.size,0);
+});
+test('only acceptance pages start quests; no dialogue introduces commands or rewards', () => {
+  for(const [id,d] of dialogs) {
+    assert.equal(d.number('DialogQuest'),({18:2,24:3,29:4})[id]??-1);
+    for(const e of d.entries.filter(e=>/\["DialogCommand"\]$/.test(e.path))) assert.equal(e.raw,'""');
+  }
+});
+test('complete journey follows replies between roots rather than the NPC slot array', () => {
+  const p=state(); assert.equal(visit(p),13); choose(13,20,p); choose(20,15,p);
+  for(const s of stages) {
+    choose(15,s.topic,p); choose(s.topic,s.accept,p); assert.equal(visit(p),s.progress);
+    turnIn(p,s.quest); assert.equal(visit(p),s.quest===4?35:15);
+  }
+  choose(35,34,p); choose(34,35,p); assert.equal(visit(p),35);
 });

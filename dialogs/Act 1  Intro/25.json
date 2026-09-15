@@ -48,7 +48,7 @@
  "OptionFactions1": -1,
  "OptionFactions2": -1,
  "Options": [
-  {"Option":{"Dialog":23,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I'm ready to take the hunt."},"OptionSlot":0},
+  {"Option":{"Dialog":23,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Back to the packwolf task."},"OptionSlot":0},
   {"Option":{"Dialog":30,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Back to my current hunt."},"OptionSlot":1},
   {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I'll prepare before I go."},"OptionSlot":2}
  ],

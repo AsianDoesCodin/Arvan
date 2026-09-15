@@ -18,7 +18,7 @@ Added 2026-09-15 for the dialogue-only Elder Posta repair; clarified the entry-s
 
 Choose the smallest useful set of entry roots, then build their reply graphs. Do not assign every continuation, offer, acceptance, or advice page merely because it exists. A descendant may also serve as a root only when a deliberate return/resume case needs that opening. Preserve recovery after closing mid-tree, refusing, or abandoning a task. A repeatable return hub with availability-gated replies can share downstream content; it must not replay a first-meeting greeting.
 
-Test first-match selection and reply reachability separately. In user-facing assignment instructions, list exact **titles** of roots in scan order, with IDs optional; put descendants in a separate tree. The existing 12-root Posta plan is an implementation snapshot, not the recommended count for every tree, and cannot be shortened safely without checking its continuation and resume paths.
+Test first-match selection and reply reachability separately. In user-facing assignment instructions, list exact **titles** of roots in scan order, with IDs optional; put descendants in a separate tree. The current Posta plan uses six roots and a reply-linked work hub, replacing the earlier 12-root implementation. This count is specific to the chosen opening text, not a requirement for other trees. Continuation and interruption paths are covered by the updated content tests.
 
 ## Modes used in this repair
 
@@ -35,7 +35,7 @@ Test first-match selection and reply reachability separately. In user-facing ass
 
 The original API also lists quest mode 5 as `Completed`. It is deliberately **not used** here: the exact-build distinction between objective readiness and a completed/turned-in quest was not runtime-verified. Do not borrow availability enum mappings from another fork: numbering can differ even when names match.
 
-Combine `Before` and `NotActive` on the same quest for a repeatable offer before acceptance or after abandonment. Do not turn that into an unread-dialog condition. Acknowledgements and greetings can be unread-only; offers must remain reachable after a refusal.
+Combine `Before` and `NotActive` on the same quest for an acceptance page available before acceptance or after abandonment. A shared topic menu may use `Before` without `NotActive` so active players can discuss that task; its acceptance reply must target the separately gated acceptance page. Do not turn that into an unread-dialog condition. Acknowledgements and greetings can be unread-only; offers must remain reachable after a refusal.
 
 ## Native field pairing
 
@@ -54,4 +54,4 @@ These are availability requirement slots within a record, not NPC starting assig
 
 Actual edited records are under `dialogs/Act 1  Intro/`. `docs/elder-posta-entry-plan.json` is explicitly labeled an **offline entry plan**, not a native NPC export or an automatic loader. Assigning roots to the NPC remains necessary when the NPC's native configuration is absent; reply-only descendants need no assignment.
 
-`native-entry-availability.test.cjs` is a read-only Node content test in this skill, not a Minecraft runtime script. It parses native text using the existing lexical inventory helper without stripping `L` suffixes, then tests first-match selection under the documented model. It does not change the working player dialog override. The entry/graph clarification changes documentation only, not that plan, its native records, or runtime scripts.
+`native-entry-availability.test.cjs` is a read-only Node content test in this skill, not a Minecraft runtime script. It parses native text using the existing lexical inventory helper without stripping `L` suffixes, then tests first-match selection under the documented model. It does not change the working player dialog override. The six-root revision updates native reply links, availability, the entry plan, and offline tests together; it leaves all runtime scripts and quest definitions untouched.

@@ -18,8 +18,8 @@
  "AvailabilityQuest": 1,
  "AvailabilityQuest2": 2,
  "AvailabilityQuest2Id": 4,
- "AvailabilityQuest3": 4,
- "AvailabilityQuest3Id": 4,
+ "AvailabilityQuest3": 0,
+ "AvailabilityQuest3Id": -1,
  "AvailabilityQuest4": 0,
  "AvailabilityQuest4Id": -1,
  "AvailabilityQuestId": 3,
@@ -40,7 +40,7 @@
  "DialogShowWheel": 0,
  "DialogSound": "",
  "DialogStopMusic": 0,
- "DialogText": "The packwolf hunt is done. Now I need something we can study. Find monsters born from mana and bring me 6 mana cores. These beings form when mana particles collide and gather into a body; they do not come from organic parents. Their cores remain as drops when they are defeated. Ordinary animals will not provide what we need. Bring all six back to me.",
+ "DialogText": "With the packwolf hunt finished, we can turn to studying the mana-born monsters. The task is to bring me 6 mana cores. These creatures form when mana particles collide and gather into a body; they do not come from organic parents. Their cores remain as drops when they are defeated. Ordinary animals will not provide what we need. Bring all six back to me.",
  "DialogTitle": "Six Mana Cores",
  "ModRev": 18,
  "OptionFaction1Points": 0,
@@ -50,8 +50,9 @@
  "Options": [
   {"Option":{"Dialog":29,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I'll bring you 6 mana cores."},"OptionSlot":0},
   {"Option":{"Dialog":32,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Tell me what to look for."},"OptionSlot":1},
-  {"Option":{"Dialog":19,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I have another question."},"OptionSlot":2},
-  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"Not yet."},"OptionSlot":3}
+  {"Option":{"Dialog":33,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"About my current mana-core task."},"OptionSlot":2},
+  {"Option":{"Dialog":31,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"What did the packwolf hunt accomplish?"},"OptionSlot":3},
+  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"Not yet."},"OptionSlot":4}
  ],
  "DialogMail": {
   "Sender": "",

@@ -18,8 +18,8 @@
  "AvailabilityQuest": 1,
  "AvailabilityQuest2": 2,
  "AvailabilityQuest2Id": 3,
- "AvailabilityQuest3": 4,
- "AvailabilityQuest3Id": 3,
+ "AvailabilityQuest3": 2,
+ "AvailabilityQuest3Id": 4,
  "AvailabilityQuest4": 0,
  "AvailabilityQuest4Id": -1,
  "AvailabilityQuestId": 2,
@@ -40,7 +40,7 @@
  "DialogShowWheel": 0,
  "DialogSound": "",
  "DialogStopMusic": 0,
- "DialogText": "Good work with the goblins. Now there is another threat to deal with: the packwolves outside Valemont. They hunt together, and anyone who watches only the wolf in front of them is easy prey. Kill 3 packwolves, then return to me. Do not let the pack decide where you stand.",
+ "DialogText": "With the goblin task finished, the packwolves are the next threat. They hunt together outside Valemont, and anyone who watches only the wolf in front of them is easy prey. The hunt calls for 3 packwolves, followed by a report to me. Do not let the pack decide where you stand.",
  "DialogTitle": "The Packwolf Threat",
  "ModRev": 18,
  "OptionFaction1Points": 0,
@@ -50,8 +50,9 @@
  "Options": [
   {"Option":{"Dialog":24,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I'll hunt 3 packwolves."},"OptionSlot":0},
   {"Option":{"Dialog":25,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"How should I fight the pack?"},"OptionSlot":1},
-  {"Option":{"Dialog":19,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I have another question."},"OptionSlot":2},
-  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I need to prepare first."},"OptionSlot":3}
+  {"Option":{"Dialog":30,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"About my current packwolf hunt."},"OptionSlot":2},
+  {"Option":{"Dialog":27,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Did the goblin task help the village?"},"OptionSlot":3},
+  {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I need to prepare first."},"OptionSlot":4}
  ],
  "DialogMail": {
   "Sender": "",

@@ -48,7 +48,7 @@
  "OptionFactions1": -1,
  "OptionFactions2": -1,
  "Options": [
-  {"Option":{"Dialog":28,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"I'm ready to take the task."},"OptionSlot":0},
+  {"Option":{"Dialog":28,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Back to the mana-core task."},"OptionSlot":0},
   {"Option":{"Dialog":33,"DialogColor":16777215,"DialogCommand":"","OptionType":1,"Title":"Back to my current task."},"OptionSlot":1},
   {"Option":{"Dialog":-1,"DialogColor":16777215,"DialogCommand":"","OptionType":0,"Title":"I'll prepare first."},"OptionSlot":2}
  ],
