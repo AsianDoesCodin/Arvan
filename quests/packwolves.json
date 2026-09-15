@@ -1,0 +1,39 @@
+{
+  "CompleterNpc": "Elder Posta",
+  "NextQuestId": -1,
+  "RandomReward": 0b,
+  "QuestRepeat": 0,
+  "QuestCompletion": 0,
+  "Title": "The Packwolf Threat",
+  "Text": "Kill 3 packwolves, then return to Elder Posta.",
+  "QuestFactionPoints": {
+    "DecreaseFaction1Points": 0b,
+    "OptionFaction2Points": 100,
+    "OptionFactions1": -1,
+    "OptionFactions2": -1,
+    "OptionFaction1Points": 100,
+    "DecreaseFaction2Points": 0b
+  },
+  "RewardExp": 0,
+  "QuestCommand": "",
+  "QuestDialogs": [
+    {"Slot": "Packwolf", "Value": 3}
+  ],
+  "ModRev": 18,
+  "Type": 2,
+  "QuestMail": {
+    "Sender": "",
+    "BeenRead": 0b,
+    "Message": {},
+    "MailItems": [],
+    "MailQuest": -1,
+    "TimePast": 1789300293017L,
+    "Time": 0L,
+    "Subject": ""
+  },
+  "Rewards": {
+    "NpcMiscInv": []
+  },
+  "CompleteText": "Three packwolves down. You have earned a rest. Speak to me again when you are ready to gather mana cores."
+}
+
