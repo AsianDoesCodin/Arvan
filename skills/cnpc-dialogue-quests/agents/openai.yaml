@@ -1,0 +1,4 @@
+interface:
+  display_name: "CustomNPCs Dialogue and Quests"
+  short_description: "Author NPC content from typed native exports"
+  default_prompt: "Use $cnpc-dialogue-quests to create dialogue and quest content from my CustomNPCs native export, preserving its NBT types and format."

@@ -1,0 +1,6 @@
+interface:
+  display_name: "CNPC Scripting - System"
+  short_description: "Global CustomNPCs scripting skill"
+  default_prompt: "Use $cnpc-scripting to write or patch a CustomNPCs script with the system skill."
+policy:
+  allow_implicit_invocation: true

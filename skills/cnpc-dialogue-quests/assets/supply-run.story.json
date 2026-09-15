@@ -1,0 +1,94 @@
+{
+  "format": "cnpc-story-draft/v1",
+  "minecraft": "1.20.1",
+  "title": "Lanterns for the Road",
+  "npcs": [
+    { "key": "mara", "name": "Mara, Road Warden", "entryDialogue": "mara-greeting" }
+  ],
+  "dialogues": [
+    {
+      "key": "mara-greeting",
+      "nativeId": null,
+      "category": "Road Warden",
+      "title": "The Unlit Road",
+      "speaker": "mara",
+      "text": "Mind the road after dusk. Half our lanterns are dark, and the last wagon came in without its driver.",
+      "conditions": [],
+      "choices": [
+        { "key": "offer", "text": "Can I help with the lanterns?", "next": "mara-offer", "conditions": [{ "quest": "lantern-supplies", "state": "available" }], "actions": [] },
+        { "key": "progress", "text": "About those supplies...", "next": "mara-progress", "conditions": [{ "quest": "lantern-supplies", "state": "active" }], "actions": [] },
+        { "key": "ready", "text": "I have all the coal you asked for.", "next": "mara-turn-in", "conditions": [{ "quest": "lantern-supplies", "state": "objectives-complete" }], "actions": [] },
+        { "key": "finished", "text": "How is the road looking now?", "next": "mara-after", "conditions": [{ "quest": "lantern-supplies", "state": "finished" }], "actions": [] },
+        { "key": "leave", "text": "I'll keep an eye out.", "next": null, "conditions": [], "actions": [] }
+      ]
+    },
+    {
+      "key": "mara-offer",
+      "category": "Road Warden",
+      "title": "Fuel for the Watch",
+      "speaker": "mara",
+      "text": "Bring me eight pieces of coal. With fresh fuel, we can keep the watch posts lit. I'll give you two emeralds and see that your work is remembered.",
+      "conditions": [{ "quest": "lantern-supplies", "state": "available" }],
+      "choices": [
+        { "key": "accept", "text": "Eight coal. I'll bring them back here.", "next": "mara-accepted", "conditions": [], "actions": [{ "kind": "start-quest", "quest": "lantern-supplies" }] },
+        { "key": "refuse", "text": "I can't take that on right now.", "next": "mara-greeting", "conditions": [], "actions": [] }
+      ]
+    },
+    {
+      "key": "mara-accepted",
+      "category": "Road Warden",
+      "title": "A Light to Follow",
+      "speaker": "mara",
+      "text": "Thank you. Bring the coal to me at the watch post. Don't hand it over to the wagon crews; their stoves will swallow it before nightfall.",
+      "conditions": [],
+      "choices": [{ "key": "leave", "text": "I'll return when I have it.", "next": null, "conditions": [], "actions": [] }]
+    },
+    {
+      "key": "mara-progress",
+      "category": "Road Warden",
+      "title": "Still Waiting on Fuel",
+      "speaker": "mara",
+      "text": "Eight pieces of coal, all together. Once you have them, bring them here and I'll get the lantern crews moving.",
+      "conditions": [{ "quest": "lantern-supplies", "state": "active" }],
+      "choices": [{ "key": "leave", "text": "I'm working on it.", "next": null, "conditions": [], "actions": [] }]
+    },
+    {
+      "key": "mara-turn-in",
+      "category": "Road Warden",
+      "title": "Light the Watch Posts",
+      "speaker": "mara",
+      "text": "That's enough to get us through tonight. Shall I take the coal and pay you?",
+      "conditions": [{ "quest": "lantern-supplies", "state": "objectives-complete" }],
+      "choices": [
+        { "key": "hand-over", "text": "Here are the eight pieces.", "next": "mara-after", "conditions": [], "actions": [{ "kind": "turn-in-quest", "quest": "lantern-supplies" }] },
+        { "key": "wait", "text": "Give me a moment.", "next": null, "conditions": [], "actions": [] }
+      ]
+    },
+    {
+      "key": "mara-after",
+      "category": "Road Warden",
+      "title": "The Road Burns Bright",
+      "speaker": "mara",
+      "text": "Every post is burning bright. Here's your pay. Next time you see those lights from the road, remember that you helped put them there.",
+      "conditions": [{ "quest": "lantern-supplies", "state": "finished" }],
+      "choices": [{ "key": "leave", "text": "Keep the road safe, Mara.", "next": null, "conditions": [], "actions": [] }]
+    }
+  ],
+  "quests": [
+    {
+      "key": "lantern-supplies",
+      "nativeId": null,
+      "category": "Road Warden",
+      "title": "Lanterns for the Road",
+      "type": "item",
+      "logText": "Bring eight pieces of coal to Mara at the watch post. The lantern crews need fuel before dusk.",
+      "completeText": "Mara has fuel for the watch posts. The road will be safer tonight.",
+      "objectives": [{ "key": "coal", "description": "Collect eight pieces of coal and hand them to Mara.", "target": "minecraft:coal", "count": 8 }],
+      "prerequisites": [],
+      "turnIn": { "npc": "mara", "dialogue": "mara-turn-in" },
+      "repeatable": false,
+      "rewards": { "experience": 25, "items": [{ "item": "minecraft:emerald", "count": 2 }] },
+      "nextQuest": null
+    }
+  ]
+}

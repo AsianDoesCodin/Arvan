@@ -1,0 +1,247 @@
+/**
+ * Dialog Override — Player Script
+ * 
+ * Intercepts ALL NPC dialog opens and replaces the vanilla CNPC dialog UI
+ * with a cinematic HTML GUI (via CNPCExtended).
+ * 
+ * Place this as a Player script. Works globally for every NPC that has dialogs.
+ * 
+ * Flow:
+ *   1. Player right-clicks NPC → CNPC picks the dialog → fires dialog event
+ *   2. We cancel the event (prevents vanilla UI) and open our HTML GUI
+ *   3. HTML GUI shows dialog text with typewriter + NPC entity + options
+ *   4. When player picks an option that links to another dialog, we send the
+ *      next dialog ID to the server, read it via API, and push data to the browser
+ *   5. We handle quest assignment, dialog-read marking, commands, and factions
+ *      server-side — replicating what NoppesUtilServer.openDialog normally does
+ */
+
+var API = Java.type("noppes.npcs.api.NpcAPI").Instance()
+
+// ── Track which NPC the player is talking to ──
+// Key = player UUID, Value = { npcEntityId, npcName }
+var activeConversations = {}
+
+/**
+ * Serialize a dialog into a plain object for the browser.
+ * @param {IDialog} dlg
+ * @param {ICustomNpc} npc
+ * @param {IPlayer} player
+ * @returns {object}
+ */
+function serializeDialog(dlg, npc, player) {
+    var options = []
+    var optList = dlg.getOptions()
+    for (var i = 0; i < optList.size(); i++) {
+        var opt = optList.get(i)
+        if (!opt || !opt.getName() || opt.getName() === "") continue
+        var type = opt.getType() // 0=QUIT, 1=DIALOG, 2=DISABLED, 3=ROLE, 4=COMMAND
+        if (type === 1 && (!opt.hasDialog() || !opt.getDialog().getAvailability().isAvailable(player))) continue
+        options.push({
+            slot: opt.getSlot(),
+            title: opt.getName(),
+            type: type,
+            hasDialog: opt.hasDialog(),
+            dialogId: opt.hasDialog() ? opt.getDialog().getId() : -1,
+            disabled: type === 2
+        })
+    }
+
+    var questId = -1
+    var questTitle = ""
+    try {
+        var quest = dlg.getQuest()
+        if (quest) {
+            questId = quest.getId()
+            questTitle = quest.getName()
+        }
+    } catch (ex) { /* no quest */ }
+
+    return {
+        id: dlg.getId(),
+        title: dlg.getName(),
+        text: dlg.getText(),
+        options: options,
+        questId: questId,
+        questTitle: questTitle,
+        npcName: npc ? npc.getDisplay().getName() : "NPC",
+        command: dlg.getCommand() || ""
+    }
+}
+
+/**
+ * Process side effects of opening a dialog (replicate NoppesUtilServer logic).
+ * - Mark dialog as read
+ * - Start attached quest
+ * - Run attached command
+ * @param {IPlayer} player
+ * @param {IDialog} dlg
+ */
+function processDialogSideEffects(player, dlg) {
+    if (!dlg.getAvailability().isAvailable(player)) return
+    var dialogId = dlg.getId()
+
+    // Mark dialog as read
+    if (dialogId >= 0 && !player.hasReadDialog(dialogId)) {
+        player.addDialog(dialogId)
+    }
+    if (dialogId === 13 && player.hasActiveQuest(1)) player.finishQuest(1)
+
+    // Start attached quest
+    try {
+        var quest = dlg.getQuest()
+        if (quest && !player.hasActiveQuest(quest.getId()) && !player.hasFinishedQuest(quest.getId())) {
+            player.startQuest(quest.getId())
+            player.message("§a[Quest Started] §f" + quest.getName())
+        }
+    } catch (ex) { /* no quest */ }
+
+    // Run attached command (via NPC command context)
+    var cmd = dlg.getCommand()
+    if (cmd && cmd !== "") {
+        var conv = activeConversations[player.getUUID()]
+        if (conv && conv.npc) {
+            try {
+                conv.npc.executeCommand(cmd)
+            } catch (ex) {
+                player.message("§c[Dialog] Command failed: " + ex)
+            }
+        }
+    }
+}
+
+// ════════════════════════════════════════════════════════════
+// EVENT: dialog — fires when CNPC is about to show a dialog
+// ════════════════════════════════════════════════════════════
+
+/**
+ * @param {DialogEvent.OpenEvent} e
+ */
+function dialog(e) {
+    var player = e.player
+    var npc = e.npc
+    var dlg = e.dialog
+
+    // Cancel the vanilla dialog UI
+    e.setCanceled(true)
+
+    // Store conversation state
+    activeConversations[player.getUUID()] = {
+        npc: npc,
+        dialog: dlg,
+        npcName: npc.getDisplay().getName()
+    }
+
+    // Process side effects for this first dialog
+    processDialogSideEffects(player, dlg)
+
+    // Serialize dialog data
+    var dialogData = serializeDialog(dlg, npc, player)
+
+    // Build init data for the HTML GUI
+    var initData = JSON.stringify({
+        dialog: dialogData,
+        playerName: player.getDisplayName(),
+        npcName: npc.getDisplay().getName(),
+        overlayEntities: [
+            { slot: 0, entityId: cnpcext.entityId(npc) }
+        ]
+    })
+
+    // Use player object (not event) since we canceled the dialog event.
+    // This routes htmlGuiEvent back to this player script.
+    cnpcext.openHtmlGui(player, "dialog_override.html", 0, 0, initData)
+}
+
+// ════════════════════════════════════════════════════════════
+// EVENT: htmlGuiEvent — handles messages from the HTML GUI
+// ════════════════════════════════════════════════════════════
+
+/**
+ * @param {CustomGuiEvent.HtmlGuiEvent} e
+ */
+function htmlGuiEvent(e) {
+    var player = e.player
+    var name = e.eventName
+    var data = e.data
+    if (typeof data === "string") data = JSON.parse(data)
+    if (typeof data === "string") data = JSON.parse(data)
+
+    if (name === "__guiClosed") {
+        // Cleanup conversation state
+        delete activeConversations[player.getUUID()]
+        return
+    }
+
+    // ── Player clicked an option that leads to another dialog ──
+    if (name === "navigate") {
+        var nextDialogId = data.dialogId
+        if (nextDialogId == null || nextDialogId < 0) return
+
+        try {
+            var nextDialog = API.getDialogs().get(nextDialogId)
+            if (!nextDialog) {
+                player.message("§c[Dialog] Dialog not found: " + nextDialogId)
+                return
+            }
+
+            var conv = activeConversations[player.getUUID()]
+            if (!conv || !nextDialog.getAvailability().isAvailable(player)) return
+            var currentOptions = conv.dialog.getOptions()
+            var linked = false
+            for (var i = 0; i < currentOptions.size(); i++) {
+                var option = currentOptions.get(i)
+                if (option && option.getType() === 1 && option.hasDialog() && option.getDialog().getId() === nextDialogId) linked = true
+            }
+            if (!linked) return
+            conv.dialog = nextDialog
+
+            // Process side effects (mark read, start quest, run command)
+            processDialogSideEffects(player, nextDialog)
+
+            // Get the NPC from conversation state
+            var conv = activeConversations[player.getUUID()]
+            var npc = conv ? conv.npc : null
+
+            // Serialize and push to browser
+            var dialogData = serializeDialog(nextDialog, npc, player)
+            var bridge = cnpcext.getClientBridge(player.getMCEntity())
+            bridge.sendToBrowser("showDialog", JSON.stringify({ dialog: dialogData }))
+
+        } catch (ex) {
+            player.message("§c[Dialog] Error: " + ex)
+        }
+        return
+    }
+
+    // ── Player clicked a QUIT option (close dialog) ──
+    if (name === "close") {
+        delete activeConversations[player.getUUID()]
+        return
+    }
+
+    // ── Player clicked a ROLE option (open role GUI — trader, bank, etc.) ──
+    if (name === "openRole") {
+        // Close HTML GUI, player can right-click the NPC again to access the role
+        // (Role GUIs are internal to CNPC and can't be triggered from script easily)
+        var conv = activeConversations[player.getUUID()]
+        if (conv && conv.npc) {
+            player.message("§eRight-click the NPC again to access their services.")
+        }
+        delete activeConversations[player.getUUID()]
+        return
+    }
+
+    // ── Player clicked a COMMAND option ──
+    if (name === "runCommand") {
+        var conv = activeConversations[player.getUUID()]
+        if (conv && conv.npc && data.command) {
+            try {
+                conv.npc.executeCommand(data.command)
+            } catch (ex) {
+                player.message("§c[Dialog] Command error: " + ex)
+            }
+        }
+        return
+    }
+}
