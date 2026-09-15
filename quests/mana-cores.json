@@ -1,0 +1,40 @@
+{
+  "CompleterNpc": "Elder Posta",
+  "NextQuestId": -1,
+  "RandomReward": 0b,
+  "QuestRepeat": 0,
+  "QuestCompletion": 0,
+  "Title": "Six Mana Cores",
+  "Text": "Collect 6 mana cores dropped by monsters formed from colliding mana particles, then deliver them to Elder Posta. These creatures were born from mana, not organic parents. Keep all six cores for the hand-in.",
+  "QuestFactionPoints": {
+    "DecreaseFaction1Points": 0b,
+    "OptionFaction2Points": 100,
+    "OptionFactions1": -1,
+    "OptionFactions2": -1,
+    "OptionFaction1Points": 100,
+    "DecreaseFaction2Points": 0b
+  },
+  "RewardExp": 0,
+  "QuestCommand": "",
+  "Items": {"NpcMiscInv": [{"Slot": 0b, "id": "minecraft:barrier", "Count": 6b}]},
+  "LeaveItems": 0b,
+  "IgnoreDamage": 0b,
+  "IgnoreNBT": 0b,
+  "ModRev": 18,
+  "Type": 0,
+  "QuestMail": {
+    "Sender": "",
+    "BeenRead": 0b,
+    "Message": {},
+    "MailItems": [],
+    "MailQuest": -1,
+    "TimePast": 1789300293017L,
+    "Time": 0L,
+    "Subject": ""
+  },
+  "Rewards": {
+    "NpcMiscInv": []
+  },
+  "CompleteText": "All six cores, accounted for. You have cleared goblins, thinned the packwolves, and brought us a way to study the mana-born creatures. Your three introductory tasks are complete."
+}
+
