@@ -45,6 +45,8 @@ jobs:
               original_text = original.decode('utf-8', errors='surrogateescape')
               text = original_text
               for change in item['edits']:
+                  if item['path'] == 'scripts/quest_map.html' and change['old'] == 'markerId: element("markerId").value }':
+                      change['scope'] = ['function send(action, data, message) {', '\nfunction saveMarker(']
                   lo, hi = 0, len(text)
                   if 'scope' in change:
                       lo = text.index(change['scope'][0])
