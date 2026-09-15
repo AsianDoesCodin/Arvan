@@ -2,13 +2,10 @@ name: Validate paired quest marker edit
 on:
   push:
     branches: ['chatgpt/paired-quest-markers']
-  pull_request:
-    types: [opened, synchronize, reopened]
 permissions:
   contents: write
 jobs:
   marker-edit:
-    if: github.event_name == 'push' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'chatgpt/paired-quest-markers')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -16,7 +13,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          SOURCE_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+          SOURCE_REF: ${{ github.sha }}
         shell: bash
         run: |
           python3 - <<'PY'
@@ -45,7 +42,8 @@ jobs:
           for item in manifest['files']:
               original = base64.b64decode(api('/git/blobs/' + item['sha'])['content'])
               assert blob_sha(original) == item['sha'], 'Original blob mismatch'
-              text = original.decode('utf-8')
+              original_text = original.decode('utf-8', errors='surrogateescape')
+              text = original_text
               for change in item['edits']:
                   lo, hi = 0, len(text)
                   if 'scope' in change:
@@ -60,12 +58,13 @@ jobs:
                   newline = '\r\n' if '\r\n' in before else '\n'
                   replacement = change['new'].replace('\n', newline)
                   text = text[:start] + replacement + text[end:]
-              output = text.encode('utf-8')
+              output = text.encode('utf-8', errors='surrogateescape')
               target = Path(item['path'])
               target.parent.mkdir(parents=True, exist_ok=True)
               target.write_bytes(output)
               for bad in ['\ufffd', 'Â§', 'Ã', 'â']:
-                  assert text.count(bad) <= original.decode('utf-8').count(bad), 'New encoding corruption'
+                  assert text.count(bad) <= original_text.count(bad), 'New encoding corruption'
+              assert [c for c in text if '\udc80' <= c <= '\udcff'] == [c for c in original_text if '\udc80' <= c <= '\udcff'], 'Unrelated legacy bytes changed'
               changed.append(item['path'])
           subprocess.run(['node', '--check', 'scripts/player/ADMsLevelingSystem.js'], check=True)
           subprocess.run(['node', '--test', 'scripts/tests/quest-map.test.cjs'], check=True)
