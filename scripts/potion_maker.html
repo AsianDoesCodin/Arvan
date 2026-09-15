@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Potion Maker</title>
+<style>
+:root{--gold:#c6a866;--ink:#eee5d6;--muted:#a6aaa5;--line:#39433f;--teal:#91cdbd;--panel:#19231f}
+*{box-sizing:border-box}body{margin:0;background:transparent;color:var(--ink);font:14px 'Segoe UI',sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;overflow:hidden}
+button,input{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:9px 13px;color:var(--ink);background:#27342e}button:hover{border-color:var(--teal);background:#31463d}button:disabled{opacity:.42;cursor:default}button.active{border-color:var(--gold);background:#4b432f;color:#fff0bd}button.primary{background:#bda265;border-color:#ddc58a;color:#191d17;font-weight:700}button.danger{color:#e9aaa0}button:focus-visible,input:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.app{width:min(1120px,95vw);height:min(750px,93vh);display:flex;flex-direction:column;background:rgba(15,23,20,.97);border:1px solid #89784e;border-radius:12px;box-shadow:0 24px 90px #0009;overflow:hidden}
+header{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(115deg,#25382f,#1a211c)}.eyebrow{font-size:10px;letter-spacing:2px;color:var(--gold);font-weight:700}h1{font:700 28px Georgia,serif;margin:4px 0 0}h2{font:700 19px Georgia,serif;margin:0 0 14px}p{color:var(--muted);line-height:1.5;margin:8px 0}.header-actions{display:flex;gap:8px}
+main{display:grid;grid-template-columns:minmax(220px,.95fr) minmax(250px,1fr) minmax(270px,1.1fr);gap:1px;background:var(--line);flex:1;min-height:0}.pane{background:var(--panel);padding:20px;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:auto}.row{display:flex;gap:8px;align-items:center}.spread{justify-content:space-between}.muted,.hint{color:var(--muted);font-size:12px}.hint{min-height:18px}.section-label{font-size:10px;color:var(--gold);font-weight:700;letter-spacing:1.5px;margin:16px 0 8px}.mods{display:flex;gap:5px;flex-wrap:wrap;max-height:94px;overflow:auto;margin:10px 0}.mods button{padding:5px 9px;font-size:12px}.search,input[type=text],input[type=number]{width:100%;min-width:0;background:#101914;color:var(--ink);border:1px solid #526157;border-radius:5px;padding:10px}input[type=checkbox],input[type=range]{accent-color:var(--teal)}input[type=range]{width:100%;min-width:0}.effects{overflow:auto;flex:1;min-height:100px;margin-top:8px}.effect{display:block;text-align:left;width:100%;background:transparent;border-color:transparent;border-bottom:1px solid var(--line);border-radius:0;padding:11px 9px}.effect small{display:block;color:var(--muted);font-size:10px;margin-top:3px;overflow-wrap:anywhere}.effect.active{border-left:3px solid var(--gold);background:#333b2d;color:#fff0bd}.type-buttons button{flex:1}.selected{margin:23px 0 15px;min-height:64px}.selected h2{margin-bottom:6px}.selected p{overflow-wrap:anywhere;font-size:11px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}label.field{display:block;font-size:12px;color:var(--muted)}label.field input{margin-top:7px}.options{display:flex;flex-wrap:wrap;gap:15px;padding:17px 0;font-size:12px}.add{width:100%;margin-top:5px}.help{margin-top:auto;padding-top:20px;font-size:12px}.recipe{flex:1;min-height:110px;overflow:auto}.recipe-row{display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--line);padding:5px 0}.recipe-edit{flex:1;min-width:0;text-align:left;background:transparent;border:0;padding:9px 0}.recipe-edit span{display:block;overflow-wrap:anywhere}.recipe-edit small{color:var(--muted)}.remove{padding:4px 9px;background:transparent;color:#dba199}.empty{padding:20px 5px;color:var(--muted);line-height:1.6;font-size:13px}.color-card{border-top:1px solid var(--line);margin-top:16px;padding-top:16px}.swatch{width:32px;height:32px;border:1px solid #ffffff55;border-radius:50%;flex-shrink:0;box-shadow:inset 0 0 9px #fff3}.color-controls{margin-top:10px}.slider{display:grid;grid-template-columns:13px 1fr 28px;gap:7px;align-items:center;font-size:11px;color:var(--muted);margin:6px 0}.hex-row{display:grid;grid-template-columns:50px 1fr;align-items:center;gap:7px;margin-top:8px}.hex-row input{padding:6px;font-family:monospace}.color-card label{font-size:12px}footer{padding:15px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;border-top:1px solid var(--line)}#status{font-size:12px;color:var(--teal);line-height:1.4}#status.error{color:#f0a49a}#create{min-width:180px}#formError{color:#f0a49a;font-size:12px;line-height:1.4;min-height:32px;margin-top:10px}[hidden]{display:none!important}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#566558;border-radius:8px}
+@media(max-width:820px){header{padding:12px 16px}h1{font-size:23px}.pane{padding:12px}main{grid-template-columns:1fr 1fr}.recipe-pane{grid-column:1/-1;max-height:230px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.recipe-pane>h2{grid-column:1/-1;margin:0}.color-card{margin:0;border:0;padding:0}.app{height:96vh}footer{padding:10px 16px}.help{display:none}main{overflow:auto}.pane{min-height:320px}.recipe-pane{min-height:210px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div><div class="eyebrow">ITEMS / CREATOR</div><h1>Potion Maker</h1></div><div class="header-actions"><button id="back">Back to Items</button><button id="close" aria-label="Close potion maker">&#215;</button></div></header>
+<main>
+<section class="pane"><h2>Effects</h2><input class="search" id="search" placeholder="Search effects…" aria-label="Search effects"><div class="row spread" style="margin-top:12px"><label><input type="checkbox" id="allEffects"> All status effects</label></div><div class="mods" id="mods"></div><div class="hint" id="count">Loading effects…</div><div class="effects" id="effects"></div></section>
+<section class="pane"><h2>Configure</h2><div class="type-buttons row"><button id="drink">Drink</button><button id="splash">Splash</button></div><div class="selected"><h2 id="selectedName">Select an effect</h2><p id="selectedId">Choose from the browser to configure it.</p></div><div class="fields"><label class="field"><span id="durationLabel">Duration · seconds</span><input id="seconds" type="number" min="0.05" step="0.05" value="30"></label><label class="field">Effect level<input id="level" type="number" min="1" max="128" step="1" value="1"></label></div><div class="options"><label><input id="particles" type="checkbox" checked> Particles</label><label><input id="icon" type="checkbox" checked> Status icon</label></div><button id="add" class="primary add" disabled>Add to recipe</button><div id="formError" role="alert"></div><p class="help">Select a recipe entry to adjust it. Each potion can contain up to 16 different effects.</p></section>
+<section class="pane recipe-pane"><h2 class="row spread"><span>Your recipe <small id="recipeCount" class="muted">0 / 16</small></span><button id="clear" class="danger" style="padding:4px 8px;font:12px 'Segoe UI',sans-serif">Clear</button></h2><div id="recipe" class="recipe"></div><div class="color-card"><div class="row spread"><div class="row"><div class="swatch" id="swatch"></div><div><strong>Potion color</strong><div class="hint" id="colorLabel">Automatic from effects</div></div></div><label><input type="checkbox" id="customColor"> Custom</label></div><div class="color-controls" id="colorControls" hidden><div class="slider"><label for="red">R</label><input type="range" id="red" min="0" max="255"><output id="redValue"></output></div><div class="slider"><label for="green">G</label><input type="range" id="green" min="0" max="255"><output id="greenValue"></output></div><div class="slider"><label for="blue">B</label><input type="range" id="blue" min="0" max="255"><output id="blueValue"></output></div><div class="hex-row"><label for="hex">HEX</label><input id="hex" type="text" value="#9d75d7" maxlength="7" spellcheck="false" aria-label="Potion hex color"></div></div></div></section>
+</main>
+<footer><div id="status" role="status">Configure your recipe, then create a potion.</div><button id="create" class="primary" disabled>Create potion</button></footer>
+</div>
+<script>
+(function(){
+    function each(items, callback){items.forEach(callback)}
+    function parse(value){if(typeof value==='string')value=JSON.parse(value)
+if(typeof value==='string')value=JSON.parse(value)
+return value||{}}
+    var bridge=window.cnpc, initial=parse(bridge?bridge.initData:{}), draft=initial.draft||{type:'drink',color:null,effects:[]}
+    var catalog=[], selected=null, edits={}, mod='minecraft', query='', showAll=false, pending=false, loaded=false
+    if(!Array.isArray(draft.effects))draft.effects=[]
+    function $(id){return document.getElementById(id)}
+    function send(action){if(bridge)bridge.sendEvent('potion_maker',{action:action,draft:draft})}
+    function element(tag,cls,text){var e=document.createElement(tag)
+e.className=cls||''
+if(text!==undefined)e.textContent=text
+return e}
+    function note(message,error){$('status').textContent=message
+$('status').className=error?'error':''}
+    function findEffect(id){for(var i=0;i<catalog.length;i++)if(catalog[i].id===id)return catalog[i]
+return null}
+    function recipeIndex(id){for(var i=0;i<draft.effects.length;i++)if(draft.effects[i].id===id)return i
+return -1}
+    function remember(){if(!selected)return
+edits[selected.id]={seconds:$('seconds').value,level:$('level').value,particles:$('particles').checked,icon:$('icon').checked}}
+    function choose(id){remember()
+selected=findEffect(id)
+renderForm()
+renderBrowser()}
+    function renderForm(){
+        $('formError').textContent=''
+        var idx=selected?recipeIndex(selected.id):-1, saved=selected?(edits[selected.id]||(idx>=0?draft.effects[idx]:null)):null
+        var v=saved||{seconds:30,level:1,particles:true,icon:true}
+        $('selectedName').textContent=selected?selected.name:'Select an effect'
+        $('selectedId').textContent=selected?selected.id:'Choose from the browser to configure it.'
+        $('seconds').value=v.seconds
+$('level').value=v.level
+$('particles').checked=v.particles!==false
+$('icon').checked=v.icon!==false
+        $('durationLabel').textContent=selected&&selected.instant?'Instant effect':'Duration · seconds'
+        $('seconds').disabled=!selected||selected.instant
+$('level').disabled=!selected
+$('particles').disabled=!selected
+$('icon').disabled=!selected
+        $('add').disabled=!selected||idx<0&&draft.effects.length>=16
+        $('add').textContent=idx>=0?'Update recipe effect':'Add to recipe'
+    }
+    function renderBrowser(){
+        var scoped=catalog.filter(function(e){return showAll||e.inPotion===true}), namespaces=[]
+        scoped.forEach(function(e){if(namespaces.indexOf(e.mod)<0)namespaces.push(e.mod)})
+        namespaces.sort(function(a,b){if(a===b)return 0
+if(a==='minecraft')return -1
+if(b==='minecraft')return 1
+return a.localeCompare(b)})
+        if(namespaces.length&&namespaces.indexOf(mod)<0)mod=namespaces[0]
+        $('mods').textContent=''
+        namespaces.forEach(function(id){var b=element('button',mod===id?'active':'',id==='minecraft'?'Vanilla':id)
+b.onclick=function(){mod=id
+renderBrowser()}
+$('mods').appendChild(b)})
+        var list=scoped.filter(function(e){return e.mod===mod&&(!query||(e.name+' '+e.id).toLowerCase().indexOf(query)>=0)})
+        $('effects').textContent=''
+$('count').textContent=list.length+' effects'+(loaded?'':' · loading…')
+        list.forEach(function(e){var b=element('button','effect'+(selected&&selected.id===e.id?' active':''))
+b.appendChild(element('span','',e.name))
+b.appendChild(element('small','',e.id))
+b.onclick=function(){choose(e.id)}
+$('effects').appendChild(b)})
+        if(!list.length)$('effects').appendChild(element('div','empty',loaded?'No matching effects. Try another mod or enable All status effects.':'Loading registered effects…'))
+    }
+    function renderRecipe(){
+        $('recipe').textContent=''
+$('recipeCount').textContent=draft.effects.length+' / 16'
+$('clear').disabled=!draft.effects.length
+        draft.effects.forEach(function(e){var info=findEffect(e.id),row=element('div','recipe-row'),edit=element('button','recipe-edit'),remove=element('button','remove','×')
+edit.appendChild(element('span','',info?info.name:e.id))
+edit.appendChild(element('small','', 'Level '+e.level+' · '+(info&&info.instant?'Instant':e.seconds+' seconds')))
+edit.onclick=function(){choose(e.id)}
+remove.setAttribute('aria-label','Remove '+(info?info.name:e.id))
+remove.onclick=function(){draft.effects.splice(recipeIndex(e.id),1)
+send('save')
+renderRecipe()
+renderForm()}
+row.appendChild(edit)
+row.appendChild(remove)
+$('recipe').appendChild(row)})
+        if(!draft.effects.length)$('recipe').appendChild(element('div','empty','Your recipe is empty. Add an effect to start creating.'))
+        $('create').disabled=pending||!draft.effects.length
+        $('drink').className=draft.type==='drink'?'active':''
+$('splash').className=draft.type==='splash'?'active':''
+    }
+    function validHex(value){return /^#[0-9a-f]{6}$/i.test(value)}
+    function renderColor(){
+        var custom=draft.color!==null&&draft.color!==undefined, color=custom?draft.color:$('hex').value
+        if(!validHex(color))color='#9d75d7'
+        $('customColor').checked=custom
+$('colorControls').hidden=!custom
+$('hex').value=color
+        $('swatch').style.background=custom?color:'linear-gradient(135deg,#659b81,#ab965b)'
+        $('colorLabel').textContent=custom?color.toUpperCase():'Automatic from effects'
+        var n=parseInt(color.substring(1),16), parts=[n>>16,(n>>8)&255,n&255]
+        each(['red','green','blue'],function(id,i){$(id).value=parts[i]
+$(id+'Value').textContent=parts[i]})
+    }
+    $('search').oninput=function(){query=this.value.toLowerCase()
+renderBrowser()}
+    $('allEffects').onchange=function(){showAll=this.checked
+renderBrowser()}
+    each(['seconds','level'],function(id){$(id).oninput=remember})
+    each(['particles','icon'],function(id){$(id).onchange=remember})
+    each(['drink','splash'],function(type){$(type).onclick=function(){draft.type=type
+send('save')
+renderRecipe()}})
+    $('add').onclick=function(){
+        if(!selected)return
+remember()
+var v=edits[selected.id],seconds=selected.instant?30:Number(v.seconds),level=Number(v.level)
+        if(!isFinite(seconds)||seconds<.05||seconds>(initial.maxSeconds||107374182.35)){$('formError').textContent='Enter a duration of at least 0.05 seconds.'
+return}
+        if(!isFinite(level)||level<1||level>(initial.maxLevel||128)||Math.floor(level)!==level){$('formError').textContent='Level must be a whole number from 1 to '+(initial.maxLevel||128)+'.'
+return}
+        var idx=recipeIndex(selected.id)
+if(idx<0&&draft.effects.length>=16)return
+        var e={id:selected.id,seconds:Math.round(seconds*20)/20,level:level,particles:v.particles,icon:v.icon}
+        if(idx<0)draft.effects.push(e)
+else draft.effects[idx]=e
+        edits[selected.id]=e
+send('save')
+renderRecipe()
+renderForm()
+note(idx<0?'Effect added to recipe.':'Recipe effect updated.')
+    }
+    $('clear').onclick=function(){draft.effects=[]
+send('save')
+renderRecipe()
+renderForm()
+note('Recipe cleared.')}
+    $('customColor').onchange=function(){draft.color=this.checked?$('hex').value:null
+renderColor()
+send('save')}
+    each(['red','green','blue'],function(id){$(id).oninput=function(){var n=(Number($('red').value)<<16)|(Number($('green').value)<<8)|Number($('blue').value)
+draft.color='#'+('000000'+n.toString(16)).slice(-6)
+renderColor()}
+$(id).onchange=function(){send('save')}})
+    $('hex').oninput=function(){var color=this.value
+if(validHex(color)){draft.color=color.toLowerCase()
+renderColor()
+this.setAttribute('aria-invalid','false')}else this.setAttribute('aria-invalid','true')}
+    $('hex').onchange=function(){if(!validHex(this.value)){renderColor()
+note('Use six hex digits, for example #9D75D7.',true)}else send('save')}
+    $('create').onclick=function(){if(pending||!draft.effects.length)return
+pending=true
+renderRecipe()
+note('Creating potion…')
+send('create')}
+    $('back').onclick=function(){send('back')}
+$('close').onclick=function(){send('close')}
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')send('save')})
+    renderForm()
+renderColor()
+renderRecipe()
+renderBrowser()
+    if(initial.error)note(initial.error,true)
+    if(bridge){
+        bridge.onEvent('potion_catalog',function(raw){var data=parse(raw)
+if(data.reset){catalog=[]
+loaded=false}if(data.effects)catalog=catalog.concat(data.effects)
+if(data.done)loaded=true
+if(data.error)note(data.error,true)
+renderBrowser()
+renderRecipe()})
+        bridge.onEvent('potion_result',function(raw){var data=parse(raw)
+pending=false
+renderRecipe()
+note(data.message,!data.ok)})
+        send('ready')
+    }
+})()
+</script>
+</body>
+</html>

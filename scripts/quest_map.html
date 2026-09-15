@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Map markers</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{display:flex;align-items:center;justify-content:center;padding:20px;background:transparent;color:#edf2f5;font:14px Arial,sans-serif}
+button,input,select{font:inherit}
+button{min-height:34px;padding:7px 13px;border:1px solid #4a5563;border-radius:4px;background:#222a34;color:#edf2f5;cursor:pointer}
+button:hover{border-color:#5eeeff;color:#5eeeff}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #5eeeff;outline-offset:2px}
+button:disabled{opacity:.4;cursor:default}
+button:disabled:hover{border-color:#4a5563;color:#edf2f5}
+input,select{width:100%;height:36px;padding:7px 10px;border:1px solid #46515e;border-radius:4px;background:#0d131b;color:#edf2f5}
+input:disabled,select:disabled{opacity:.6}
+input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:#5eeeff}
+.screen{display:flex;flex-direction:column;width:960px;max-width:100%;height:680px;max-height:100%;background:rgba(15,20,28,.97);border:1px solid #46515e;border-top:2px solid #d99b16;border-radius:7px;box-shadow:0 16px 64px rgba(0,0,0,.55);overflow:hidden}
+.header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid #343f4c}
+h1{margin:0 0 6px;font-size:23px;letter-spacing:.3px}
+.subtitle,.hint{margin:0;color:#9daab9;font-size:12px;line-height:1.5}
+.nav,.actions{display:flex;gap:8px;align-items:center}
+.cyan{border-color:#278c9b;color:#63efff}
+.gold{border-color:#a87918;color:#ffd65c}
+.danger{border-color:#913d3d;color:#ff9292}
+.content{display:flex;flex:1;min-height:0}
+.sidebar{display:flex;flex-direction:column;width:34%;min-width:245px;padding:18px 14px;border-right:1px solid #343f4c}
+.listHeading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;padding:0 4px}
+h2{margin:0;font-size:15px;font-weight:700}
+.count{color:#9daab9;font-size:12px;font-weight:400;margin-left:5px}
+.search{margin:0 4px 12px;width:calc(100% - 8px)}
+.markerList{overflow:auto;flex:1;min-height:0;padding:2px 4px}
+.markerRow{display:flex;align-items:center;gap:10px;width:100%;min-height:76px;margin-bottom:7px;padding:11px;text-align:left;background:#171f29;border-color:#313d4b}
+.markerRow.selected{border-color:#5eeeff;background:#20303c}
+.markerIcon,.previewIcon{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:34px;height:38px;border:1px solid #78602c;border-radius:4px;background:#332d20;color:#ffd65c;font:700 23px "Segoe UI Symbol",Arial,sans-serif}
+.markerIcon.always{border-color:#2a6d77;background:#19343c;color:#63efff}
+.rowText{min-width:0}
+.rowName{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.rowMeta,.rowPosition{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#a6b2bf;font-size:10px;line-height:1.65}
+.rowPosition{color:#8594a5}
+.empty{padding:30px 14px;text-align:center;color:#9daab9;font-size:12px;line-height:1.7}
+.editor{display:flex;flex:1;min-width:0;flex-direction:column}
+.editorHeading{display:flex;align-items:center;gap:12px;padding:20px 24px 0}
+.editorHeading h2{font-size:17px;margin-bottom:5px}
+.previewIcon{width:42px;height:44px}
+.draftState{color:#a7b4c1;font-size:11px}
+.draftState.dirty{color:#ffd65c}
+.fields{margin:0;padding:20px 24px;min-width:0;border:0;overflow:auto;flex:1}
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{min-width:0}
+.wide{grid-column:1/-1}
+.field label,.fieldLabel{display:block;margin-bottom:7px;color:#aab8c7;font-size:11px;letter-spacing:.6px;text-transform:uppercase}
+.field .hint{margin-top:6px;font-size:11px}
+.dimension{padding:10px 12px;border:1px solid #354554;border-radius:4px;background:#17212c;overflow-wrap:anywhere;color:#bce9ee;font-size:12px}
+.positionHeading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.positionHeading .fieldLabel{margin:0}
+.positionHeading button{min-height:29px;padding:4px 10px;font-size:11px}
+.coordinates{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.check{display:flex;align-items:flex-start;gap:9px;color:#cfdae4;font-size:12px;line-height:16px;cursor:pointer}
+.editorActions{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 24px;border-top:1px solid #343f4c}
+.editorActions .gold{min-width:120px}
+.footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 20px;border-top:1px solid #343f4c;background:#121922}
+.status{color:#a7b4c1;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.status.good{color:#78dfaa}
+.status.bad{color:#ff9292}
+.footer button{flex-shrink:0;font-size:12px}
+@media(max-width:720px){body{padding:8px}.header{padding:14px 16px;flex-wrap:wrap;gap:12px}h1{font-size:20px}.nav{flex-wrap:wrap}.sidebar{min-width:210px;width:36%;padding:14px 8px}.editorHeading{padding:16px 16px 0}.fields{padding:16px}.formGrid{gap:12px}.editorActions{padding:12px 16px}.subtitle{font-size:11px}}
+@media(max-width:520px){.header .nav{width:100%}.header .nav button{flex:1;font-size:12px}.content{display:block;overflow:auto}.sidebar{width:100%;height:225px;min-height:225px;border-right:0;border-bottom:1px solid #343f4c}.editor{min-height:470px}.fields{overflow:visible}.footer{padding:10px 12px}}
+@media(max-height:560px) and (min-width:521px){body{padding:8px}.header{padding:12px 18px}.editorHeading{padding-top:12px}.fields{padding-top:12px;padding-bottom:12px}.formGrid{gap:10px}.editorActions{padding-top:10px;padding-bottom:10px}}
+</style>
+<link rel="stylesheet" href="cnpc://assets/rpg/theme.css">
+<style>
+body{padding:14px}
+#markerAtlas{width:calc(100vw - 28px);height:calc(100vh - 28px);max-width:1600px;max-height:none;padding:26px;background:#101616 url("cnpc://assets/rpg/marker-atlas.png") center/100% 100% no-repeat;border:0;border-radius:0;color:#eadbc1}
+#markerAtlas .header{padding:12px 16px 18px;background:transparent;border-color:#75613d}
+#markerAtlas h1{font:normal 28px Georgia,serif;letter-spacing:.5px;color:#f3ddb2}
+#markerAtlas .subtitle{color:#baa888}
+#markerAtlas .content{display:flex;overflow:hidden;background:rgba(9,17,18,.87)}
+#markerAtlas .sidebar{width:27%;min-width:210px;max-width:340px;padding:16px 14px;border-color:#75613d}
+#markerAtlas .markerList{overflow:hidden;padding:0 4px}
+#markerAtlas .markerRow{height:68px;min-height:68px;margin-bottom:8px;padding:10px;background:#162022;border-color:#344343}
+#markerAtlas .markerRow.selected{background:#313026;border-color:#d3ad62;box-shadow:inset 3px 0 #d3ad62}
+#markerAtlas .rowName{color:#f0dfbb}
+#markerAtlas .rowMeta{color:#d0b477}
+#markerAtlas .rowPosition{color:#9baead}
+#markerAtlas .editorHeading{padding:16px 18px 0}
+#markerAtlas .editorHeading h2{font:normal 22px Georgia,serif;color:#edcf91}
+#markerAtlas .fields{overflow:hidden;padding:16px 18px;min-height:0}
+#markerAtlas .formGrid{height:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:stretch}
+#markerAtlas .formPanel{display:flex;flex-direction:column;gap:16px;min-width:0;min-height:0;padding:18px;border:1px solid #52605a;background:rgba(14,22,23,.86)}
+#markerAtlas .formPair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#markerAtlas .formPanel .check{margin-top:auto;padding-top:8px}
+#markerAtlas .field label,#markerAtlas .fieldLabel{color:#c8b28e}
+#markerAtlas input,#markerAtlas select{background:#10191a;color:#f1e2c6;border-color:#65736a}
+#markerAtlas input[type=checkbox]{accent-color:#c4a461}
+#markerAtlas .dimension{background:#1a292a;border-color:#4b6e6c;color:#a8d6ce;font-size:12px}
+#markerAtlas .editorActions{padding:12px 18px;border-color:#75613d;background:rgba(14,22,23,.9)}
+#markerAtlas .editorActions .gold{min-width:158px;background:#69532d;border-color:#d0af6f;color:#fff0c8}
+#markerAtlas .footer{padding:10px 16px;background:transparent;border-color:#75613d}
+#markerAtlas button:hover{border-color:#dbb66f;color:#ffe0a0}
+#markerAtlas .markerPaging{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 4px 0;color:#baa888;font-size:11px}
+#markerAtlas .markerPaging button{min-height:28px;padding:4px 10px}
+@media(max-width:850px){#markerAtlas{padding:18px}#markerAtlas .sidebar{min-width:190px;padding:12px 8px}#markerAtlas .header{padding:8px 12px 12px}#markerAtlas .formGrid{grid-template-columns:1fr;gap:8px}#markerAtlas .formPanel{display:grid;grid-template-columns:1fr 1fr;padding:10px;gap:8px}#markerAtlas .formPanel .wide{grid-column:auto}#markerAtlas .formPair,#markerAtlas .formPanel .check,#markerAtlas .formPanel .destination{grid-column:1/-1}#markerAtlas .formPanel .check{margin:0;padding:0}#markerAtlas .formPanel .hint{display:none}#markerAtlas .fields{padding:10px 12px}#markerAtlas .editorHeading{padding:10px 12px 0}}
+@media(max-height:650px){body{padding:8px}#markerAtlas{width:calc(100vw - 16px);height:calc(100vh - 16px);padding:16px}#markerAtlas .header{padding:6px 12px 10px}#markerAtlas h1{font-size:23px;margin-bottom:3px}#markerAtlas .editorHeading{padding:8px 12px 0}#markerAtlas .editorHeading h2{font-size:18px}#markerAtlas .previewIcon{height:34px;width:34px}#markerAtlas .fields{padding:10px 12px}#markerAtlas .formPanel{padding:12px;gap:10px}#markerAtlas input,#markerAtlas select{height:31px;padding:5px 8px;font-size:12px}#markerAtlas .field label,#markerAtlas .fieldLabel{font-size:10px;margin-bottom:5px}#markerAtlas input[type=checkbox]{height:15px;width:15px}#markerAtlas .editorActions,#markerAtlas .footer{padding:7px 12px}#markerAtlas .dimension{padding:7px 9px}#markerAtlas .formPanel .check{font-size:11px;line-height:15px}}
+@media(max-height:540px){#markerAtlas{padding:12px}#markerAtlas .subtitle,#markerAtlas .formPanel .hint{display:none}#markerAtlas .header{padding-bottom:7px}#markerAtlas .editorHeading{padding-top:5px}#markerAtlas .fields{padding:7px 10px}#markerAtlas .formPanel{padding:8px;gap:6px}#markerAtlas input,#markerAtlas select{height:27px;font-size:11px}#markerAtlas input[type=checkbox]{height:14px;width:14px}#markerAtlas .field label,#markerAtlas .fieldLabel{font-size:9px;margin-bottom:4px}#markerAtlas .check{font-size:10px;line-height:12px}#markerAtlas .dimension{padding:5px 8px}#markerAtlas .editorActions,#markerAtlas .footer{padding:5px 10px}}
+</style>
+</head>
+<body>
+<main class="screen" id="markerAtlas">
+  <header class="header">
+    <div><h1>Map markers</h1><p class="subtitle">Chart objectives and return destinations.</p></div>
+    <nav class="nav" aria-label="Navigation"><button id="openMap" class="cyan">Open Map</button><button id="back">Back</button><button id="close">Close</button></nav>
+  </header>
+  <div class="content">
+    <aside class="sidebar" aria-label="Saved markers">
+      <div class="listHeading"><h2>Markers <span class="count" id="markerCount">0</span></h2><button id="newMarker" class="cyan">+ New</button></div>
+      <input id="search" class="search" type="search" maxlength="100" placeholder="Search name, quest or dimension" aria-label="Search markers">
+      <div id="markerList" class="markerList"></div>
+      <div class="markerPaging"><button id="markerPrevious" aria-label="Previous markers">Previous</button><span id="markerPage"></span><button id="markerNext" aria-label="Next markers">Next</button></div>
+    </aside>
+    <section class="editor" aria-label="Marker editor">
+      <div class="editorHeading"><span class="previewIcon" id="previewIcon" aria-hidden="true">!</span><div><h2 id="editorTitle">New marker</h2><span id="draftState" class="draftState">Not saved yet</span></div></div>
+      <fieldset id="editorFields" class="fields">
+        <input id="markerId" type="hidden">
+        <div class="formGrid">
+          <div class="formPanel">
+          <div class="formPair">
+          <div class="field"><label for="mode">Visibility</label><select id="mode"><option value="QUEST">Active quest only</option><option value="ALWAYS">Always visible</option></select></div>
+          <div class="field" id="questField"><label for="questId">Quest ID</label><input id="questId" type="number" min="1" step="1" placeholder="e.g. 12"></div>
+          </div>
+          <div class="field wide"><label for="name">Marker name</label><input id="name" maxlength="64" placeholder="Name shown on the map" autocomplete="off"></div>
+          <div class="field wide"><label for="symbol">Symbol</label><select id="symbol"><option value="!">! &nbsp; Quest</option><option value="?">? &nbsp; Question</option><option value="★">★ &nbsp; Star</option><option value="◆">◆ &nbsp; Diamond</option><option value="✦">✦ &nbsp; Spark</option><option value="⚑">⚑ &nbsp; Flag</option><option value="⌂">⌂ &nbsp; Home</option><option value="⚔">⚔ &nbsp; Battle</option><option value="☠">☠ &nbsp; Danger</option><option value="♦">♦ &nbsp; Gem</option><option value="✚">✚ &nbsp; Healing</option><option value="♨">♨ &nbsp; Rest</option><option value="●">● &nbsp; Circle</option><option value="■">■ &nbsp; Square</option><option value="▲">▲ &nbsp; Triangle</option><option value="✹">✹ &nbsp; Burst</option><option value="☀">☀ &nbsp; Sun</option><option value="☾">☾ &nbsp; Moon</option><option value="⚒">⚒ &nbsp; Workshop</option><option value="✪">✪ &nbsp; Objective</option><option value="⊕">⊕ &nbsp; Target</option><option value="⬟">⬟ &nbsp; Shield</option><option value="♜">♜ &nbsp; Tower</option><option value="♛">♛ &nbsp; Crown</option></select></div>
+          <label class="check wide"><input id="turnin" type="checkbox"><span><strong>turnin</strong><br>Show this destination when all quest objectives are complete.</span></label>
+          </div>
+          <div class="formPanel">
+          <div class="field wide destination"><div class="positionHeading"><span class="fieldLabel">Destination</span><button type="button" id="myPos" class="cyan">My Pos</button></div><div class="coordinates"><div><label for="x">X</label><input id="x" type="number" step="any" min="-29999984" max="29999984"></div><div><label for="y">Y</label><input id="y" type="number" step="1" min="-2048" max="2047"></div><div><label for="z">Z</label><input id="z" type="number" step="any" min="-29999984" max="29999984"></div></div></div>
+          <div class="field wide"><span class="fieldLabel">Dimension</span><div id="dimensionLabel" class="dimension">Unknown dimension</div><p class="hint">My Pos copies your current X, Y, Z and dimension.</p></div>
+          <label class="check wide"><input id="showOutside" type="checkbox" checked><span>Show at the map edge when outside the view</span></label>
+          </div>
+        </div>
+      </fieldset>
+      <div class="editorActions"><button id="remove" class="danger" disabled>Delete</button><button id="save" class="gold">Save marker</button></div>
+    </section>
+  </div>
+  <footer class="footer"><div id="status" class="status" role="status" aria-live="polite">Ready.</div><button id="refresh">Refresh</button></footer>
+</main>
+<script>
+var state = normalize(window.cnpc.initData || {})
+var markers = state.markers || []
+var player = state.player || {}
+var admin = state.admin === true
+var draftDimension = {}
+var dirty = false
+var draftRevision = 0
+var draftGeneration = 0
+var actionSequence = 0
+var pending = null
+var markerBatchId = ""
+var markerPage = 0
+
+function normalize(value) {
+    if (typeof value === "string") value = JSON.parse(value)
+    if (typeof value === "string") value = JSON.parse(value)
+    return value || {}
+}
+
+function element(id) {
+    return document.getElementById(id)
+}
+
+function text(value) {
+    return String(value == null ? "" : value)
+}
+
+function dimensionOf(source) {
+    return {
+        dimensionId: text(source.dimensionId),
+        dimension: source.dimension == null ? null : source.dimension,
+        dimensionName: text(source.dimensionName)
+    }
+}
+
+function dimensionLabel(source) {
+    return text(source.dimensionName || source.dimensionId || (source.dimension == null ? "Unknown dimension" : source.dimension))
+}
+
+function setStatus(message, ok) {
+    element("status").textContent = message || "Ready."
+    element("status").className = "status" + (ok === false ? " bad" : ok === true ? " good" : "")
+}
+
+function updateEditor() {
+    var selected = element("markerId").value !== ""
+    element("questField").style.visibility = element("mode").value === "QUEST" ? "visible" : "hidden"
+    element("questId").disabled = !admin || element("mode").value !== "QUEST"
+    element("turnin").disabled = !admin || element("mode").value !== "QUEST"
+    element("previewIcon").textContent = element("symbol").value || "!"
+    element("editorTitle").textContent = admin ? (selected ? "Edit marker" : "New marker") : "Marker details"
+    element("draftState").textContent = !admin ? "Read only" : dirty ? "Unsaved changes" : selected ? "Saved marker" : "Not saved yet"
+    element("draftState").className = "draftState" + (dirty && admin ? " dirty" : "")
+    element("dimensionLabel").textContent = dimensionLabel(draftDimension)
+    element("editorFields").disabled = !admin
+    element("save").disabled = !admin || pending !== null
+    element("remove").disabled = !admin || !selected || pending !== null
+    element("myPos").disabled = !admin || pending !== null
+    element("newMarker").disabled = !admin
+    element("refresh").disabled = !admin
+    element("openMap").disabled = !admin
+    element("back").disabled = !admin
+}
+
+function markDirty() {
+    if (!admin) return
+    dirty = true
+    draftRevision++
+    updateEditor()
+}
+
+function loadDraft(marker) {
+    draftGeneration++
+    draftRevision++
+    dirty = false
+    element("markerId").value = text(marker.markerId)
+    element("mode").value = marker.mode === "ALWAYS" ? "ALWAYS" : "QUEST"
+    element("questId").value = marker.questId > 0 ? text(marker.questId) : ""
+    element("name").value = text(marker.name).substring(0, 64)
+    element("symbol").value = marker.symbol || "!"
+    if (!element("symbol").value) element("symbol").value = "!"
+    element("x").value = text(marker.x)
+    element("y").value = text(marker.y == null ? player.y : marker.y)
+    element("z").value = text(marker.z)
+    element("showOutside").checked = marker.showOutside !== false
+    element("turnin").checked = marker.turnin === true
+    draftDimension = dimensionOf(marker)
+    updateEditor()
+    renderMarkers()
+}
+
+function newMarker() {
+    if (!admin) return
+    var marker = dimensionOf(player)
+    marker.x = player.x
+    marker.y = player.y
+    marker.z = player.z
+    loadDraft(marker)
+}
+
+function renderMarkers() {
+    var list = element("markerList")
+    var query = element("search").value.toLowerCase().trim()
+    var filtered = []
+    for (var f = 0; f < markers.length; f++) {
+        var candidate = markers[f]
+        var searchText = text(candidate.name) + " " + (candidate.mode === "ALWAYS" ? "Always visible" : "Quest #" + candidate.questId) + " " + dimensionLabel(candidate) + (candidate.turnin ? " turnin" : "")
+        if (searchText.toLowerCase().indexOf(query) >= 0) filtered.push(candidate)
+    }
+    var pageSize = Math.max(1, Math.floor(list.clientHeight / 76))
+    var pages = Math.max(1, Math.ceil(filtered.length / pageSize))
+    markerPage = Math.max(0, Math.min(markerPage, pages - 1))
+    element("markerPage").textContent = (markerPage + 1) + " / " + pages
+    element("markerPrevious").disabled = markerPage === 0
+    element("markerNext").disabled = markerPage >= pages - 1
+    list.textContent = ""
+    for (var i = markerPage * pageSize; i < Math.min(filtered.length, (markerPage + 1) * pageSize); i++) {
+        var marker = filtered[i]
+        var modeLabel = marker.mode === "ALWAYS" ? "Always visible" : "Quest #" + marker.questId + (marker.turnin ? " · Turn-in" : " · Objective")
+        var dimension = dimensionLabel(marker)
+        var row = document.createElement("button")
+        var icon = document.createElement("span")
+        var body = document.createElement("span")
+        var name = document.createElement("strong")
+        var meta = document.createElement("span")
+        var position = document.createElement("span")
+        row.className = "markerRow" + (text(marker.markerId) === element("markerId").value ? " selected" : "")
+        row.setAttribute("data-marker-id", text(marker.markerId))
+        row.setAttribute("aria-pressed", text(marker.markerId) === element("markerId").value ? "true" : "false")
+        icon.className = "markerIcon" + (marker.mode === "ALWAYS" ? " always" : "")
+        icon.textContent = marker.symbol || "!"
+        body.className = "rowText"
+        name.className = "rowName"
+        name.textContent = marker.name || "Unnamed marker"
+        meta.className = "rowMeta"
+        meta.textContent = modeLabel
+        position.className = "rowPosition"
+        position.textContent = "X " + text(marker.x) + " / Y " + text(marker.y == null ? "?" : marker.y) + " / Z " + text(marker.z) + " · " + dimension
+        row.title = name.textContent + " · " + modeLabel + " · " + position.textContent
+        body.appendChild(name)
+        body.appendChild(meta)
+        body.appendChild(position)
+        row.appendChild(icon)
+        row.appendChild(body)
+        row.onclick = selectMarker
+        list.appendChild(row)
+    }
+    element("markerCount").textContent = query ? filtered.length + " / " + markers.length : text(markers.length)
+    if (!filtered.length) {
+        var empty = document.createElement("div")
+        empty.className = "empty"
+        empty.textContent = query ? "No markers match your search." : admin ? "No saved markers. Create a point with New." : "No markers to display."
+        list.appendChild(empty)
+    }
+}
+
+function selectMarker() {
+    var id = this.getAttribute("data-marker-id")
+    for (var i = 0; i < markers.length; i++) {
+        if (text(markers[i].markerId) === id) {
+            loadDraft(markers[i])
+            return
+        }
+    }
+}
+
+function send(action, data, message) {
+    if (!admin) return false
+    if (pending && action === "refresh") pending = null
+    if (pending && action !== "back" && action !== "open_map") return false
+    data = data || {}
+    data.action = action
+    data.actionRequestId = String(++actionSequence)
+    if (action === "back" || action === "open_map") {
+        window.cnpc.sendEvent("quest_map", data)
+        return true
+    }
+    pending = { id: data.actionRequestId, action: action, revision: draftRevision, generation: draftGeneration, markerId: element("markerId").value }
+    if (action === "ready" || action === "refresh" || action === "save" || action === "delete") markerBatchId = data.actionRequestId
+    setStatus(message)
+    updateEditor()
+    window.cnpc.sendEvent("quest_map", data)
+    return true
+}
+
+function saveMarker() {
+    if (!admin || pending) return
+    var name = element("name").value.trim()
+    var xText = element("x").value.trim()
+    var yText = element("y").value.trim()
+    var zText = element("z").value.trim()
+    var x = Number(xText)
+    var y = Number(yText)
+    var z = Number(zText)
+    var mode = element("mode").value
+    var questId = Number(element("questId").value)
+    if (!name || name.length > 64) return setStatus("Enter a marker name from 1 to 64 characters.", false)
+    if (!xText || !zText || !isFinite(x) || !isFinite(z) || Math.abs(x) > 29999984 || Math.abs(z) > 29999984) return setStatus("Enter valid X and Z coordinates within ±29999984.", false)
+    if (!yText || !isFinite(y) || Math.floor(y) !== y || y < -2048 || y > 2047) return setStatus("Enter a whole-number Y coordinate from -2048 to 2047.", false)
+    if (mode === "QUEST" && (!isFinite(questId) || questId < 1 || Math.floor(questId) !== questId)) return setStatus("Enter a positive whole-number quest ID.", false)
+    if (!draftDimension.dimensionId && draftDimension.dimension == null && !draftDimension.dimensionName) return setStatus("Use My Pos to set this marker's dimension.", false)
+    var data = dimensionOf(draftDimension)
+    data.markerId = element("markerId").value
+    data.mode = mode
+    data.questId = mode === "QUEST" ? questId : 0
+    data.name = name
+    data.symbol = element("symbol").value || "!"
+    data.x = x
+    data.y = y
+    data.z = z
+    data.showOutside = element("showOutside").checked
+    data.turnin = mode === "QUEST" && element("turnin").checked
+    send("save", data, "Saving marker...")
+}
+
+function deleteMarker() {
+    if (!admin || pending || !element("markerId").value) return
+    send("delete", { markerId: element("markerId").value }, "Deleting marker...")
+}
+
+function receiveMeta(data) {
+    var update = normalize(data)
+    var requestId = text(update.actionRequestId)
+    if (requestId && (!pending || requestId !== pending.id)) return
+    var request = pending
+    if (requestId) pending = null
+    if (update.player) player = update.player
+    if (request && requestId && update.ok !== false && request.generation === draftGeneration) {
+        if (request.action === "mypos" && update.action === "mypos" && update.player) {
+            element("x").value = text(player.x)
+            element("y").value = text(player.y)
+            element("z").value = text(player.z)
+            draftDimension = dimensionOf(player)
+            dirty = true
+            draftRevision++
+        } else if (request.action === "save") {
+            if (update.markerId) element("markerId").value = text(update.markerId)
+            if (request.revision === draftRevision) dirty = false
+        } else if (request.action === "delete") {
+            newMarker()
+        }
+    }
+    if (update.message) setStatus(update.message, update.ok)
+    else if (requestId) setStatus(update.ok === false ? "The server could not complete that action." : "Ready.", update.ok)
+    updateEditor()
+    renderMarkers()
+}
+
+function receiveMarkers(data) {
+    var update = normalize(data)
+    if (!markerBatchId || text(update.batchId) !== markerBatchId) return
+    if (update.reset === true) markers = []
+    var incoming = update.markers || []
+    for (var i = 0; i < incoming.length; i++) {
+        var found = false
+        for (var j = 0; j < markers.length; j++) {
+            if (text(markers[j].markerId) === text(incoming[i].markerId)) {
+                markers[j] = incoming[i]
+                found = true
+                break
+            }
+        }
+        if (!found) markers.push(incoming[i])
+    }
+    if (!dirty && !pending && element("markerId").value) {
+        for (var k = 0; k < incoming.length; k++) {
+            if (text(incoming[k].markerId) === element("markerId").value) {
+                loadDraft(incoming[k])
+                return
+            }
+        }
+    }
+    renderMarkers()
+}
+
+element("mode").onchange = markDirty
+element("questId").oninput = markDirty
+element("name").oninput = markDirty
+element("symbol").onchange = markDirty
+element("x").oninput = markDirty
+element("y").oninput = markDirty
+element("z").oninput = markDirty
+element("showOutside").onchange = markDirty
+element("turnin").onchange = markDirty
+element("search").oninput = function() { markerPage = 0; renderMarkers() }
+element("markerPrevious").onclick = function() { markerPage--; renderMarkers() }
+element("markerNext").onclick = function() { markerPage++; renderMarkers() }
+window.addEventListener("resize", renderMarkers)
+element("newMarker").onclick = newMarker
+element("myPos").onclick = function() { send("mypos", {}, "Getting your current position...") }
+element("save").onclick = saveMarker
+element("remove").onclick = deleteMarker
+element("refresh").onclick = function() { send("refresh", {}, "Refreshing markers...") }
+element("openMap").onclick = function() { send("open_map", {}, "Opening JourneyMap...") }
+element("back").onclick = function() { send("back", {}, "Returning...") }
+element("close").onclick = function() { window.cnpc.close() }
+window.cnpc.onEvent("quest_map_meta", receiveMeta)
+window.cnpc.onEvent("quest_map_markers", receiveMarkers)
+loadDraft(player)
+setStatus(state.message || (admin ? "Ready." : "Read only. Administrator access is required to manage markers."), state.ok)
+if (admin) send("ready", {}, "Loading markers...")
+</script>
+</body>
+</html>
