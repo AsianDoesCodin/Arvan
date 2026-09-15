@@ -46,23 +46,57 @@ Both commands read the draft and print to stdout; they never modify files or con
 
 Review the story once as a player: acceptance must identify the objective, progress must describe what is missing, turn-in must require completion, and the reward must match the request. Keep generated commands out of the draft; record any required scripted behavior in the handoff and implement only through verified APIs when requested.
 
-## Design gotcha: players return; NPC slots are not a linear story
+## Design gotcha: starting slots select a tree; replies navigate it
 
 **Fix dialogue-design problems in native dialogue content and availability. Do not modify a working player/NPC script, GUI override, or shared NPC state to compensate unless the user explicitly requests a script change.**
 
-The Arvan user confirmed on 2026-09-15 that their NPC dialog assignments are scanned like an ordered array: the first available dialog opens; unavailable entries are skipped. They report about 12 assignable dialogs. This is project-provided behavior, not a universally verified limit for every CNPC build. NPC assignment positions are separate from response `OptionSlot` positions inside a dialogue.
+The Arvan user clarified on 2026-09-15 that these are two separate layers:
 
-Design **two things**: the response graph and the NPC's ordered entry list. A graph that starts with a permanently available introduction will repeat that introduction on every visit and hide all later roots. Do not solve this by placing every stage behind the same introductory hub.
+| Layer | What it does | What belongs there |
+| --- | --- | --- |
+| NPC starting-dialogue assignments | On right-click, scan assignments in order; skip unavailable entries and open the first available one, then stop scanning | Only alternative entry points needed for different player states or deliberate resume points |
+| Reply-linked dialogue graph | After opening, a selected reply links to another dialogue through `Options[].Option.Dialog` | Continuations, offers, acceptance, advice, lore, loops, shared pages, and exits |
 
-For each quest, cover first meeting/briefing, offer, refusal and later reconsideration, acceptance, active/incomplete return, objectives-ready but not yet turned in, completed acknowledgement, next offer, and ordinary post-completion conversation. Players may close any page, ask unrelated questions, leave, reconnect, abandon a task, or revisit before completing it. Advice and lore should remain accessible without restarting or finishing their quest.
+One assigned starting dialogue can lead through a large branching graph. Reply targets do **not** need their own NPC starting slots merely to be reachable. An NPC assignment position, a reply's `OptionSlot`, and a dialogue ID are different things. The reported **about 12 starting slots are capacity, not a target to fill and not a limit on the total dialogue graph**; no universal slot limit is verified here.
 
-Give each entry explicit availability and write the exact slot order. Put specific later-stage entries before earlier/fallback entries. Gate first greetings and one-time acknowledgements with dialogue-read history; do not make repeatable offers unread-only, or declining once will remove the offer. An offer should exclude both active and already-finished states; `Before` alone is not a safe synonym for never accepted. Keep quest attachment on acceptance pages, not progress or greeting pages.
+```text
+Right-click NPC: scan STARTING slots from the beginning
+  Start A available? yes -> open A -> follow its reply-linked tree
+                     no -> check Start B
+  Start B available? yes -> open B -> follow its reply-linked tree
+                     no -> check Start C ...
+
+Inside A's tree (illustrative, not allocated IDs):
+  Greeting -> explanation -> offer -> acceptance -> close
+                   |           |
+                   +-> lore    +-> advice -> back to offer
+```
+
+The next NPC starting slot is **not the next conversation page**. Reading/closing a page does not mean "open the next assigned slot". A later right-click performs entry selection again using the player's then-current state. Reply navigation selects its linked target, not the next NPC slot; verify that target's own availability as well.
+
+### Choose roots before listing NPC assignments
+
+Design the entry-state table separately from the full reply graph. Use only the starting roots needed for first meeting, returning conversation, active work, and post-completion states; split further only when different opening text or interruption recovery actually requires it. Offer, advice, acceptance, and acknowledgement pages can be descendants. A page may also be an assigned root when a later right-click genuinely needs to resume there, but this must be intentional, not automatic for every node or quest step. Different roots may share descendants.
+
+For every proposed starting slot, explain **which player state needs to open there instead of an earlier root**. Do not pad the list to 12, put every dialogue title on the NPC, or infer a minimum number of roots from the number of quest stages. Put an unconditional fallback last, if one is used. Order matters only when more than one entry could pass; an always-available first root masks every later alternative. A repeatable hub is acceptable when its greeting fits returning players and its replies expose the correct available branches; a permanent "new traveler" root is not.
+
+### Players can interrupt and return
+
+Cover first meeting/briefing, offer, refusal and later reconsideration, acceptance, active/incomplete return, objectives-ready but not yet turned in, completed acknowledgement, next offer, and ordinary post-completion conversation. These are **coverage requirements, not one required NPC slot per state**. Players can close mid-tree, ask unrelated questions, reconnect, abandon a task, or revisit before completing it. A return root needs a valid reply route to any unfinished offer or briefing; do not rely on the player following a linear path in one sitting.
+
+Give starting roots explicit availability, and check linked-page availability separately. Gate one-time greetings or acknowledgements appropriately, but keep declined offers reachable. An offer should exclude both active and finished states; `Before` alone is not a safe synonym for never accepted. Keep quest attachment on acceptance pages, not progress or greeting pages. Advice and lore must remain reachable while a task is active without restarting or finishing it.
 
 Do not equate objective counts or possession of items with quest turn-in. When a separate ready-to-turn-in native condition is unverified, write the active response conditionally ("If all three are defeated, turn in the task with me") rather than claiming a missing count, paying a reward, or advancing the next quest. Keep native quest/reward definitions unchanged unless their modification is requested and supported.
 
-Validate the **first matching entry** after every interruption, not just whether nodes connect. Test declined/abandoned offers, repeated active visits, readiness without hand-in, hand-in, old read history, and two players at different stages. Also check linked target availability: do not hide an advice page behind a not-active gate when an active quest links to it.
+Validate both **first-match root selection on a fresh right-click** and **reply reachability within the chosen tree**. Test closure at intermediate pages, declined/abandoned offers, repeated active visits, readiness without hand-in, hand-in, old read history, shared advice/lore, and two players at different stages. A connected graph alone does not prove the correct root opens; a passing entry scan alone does not prove the rest of the conversation is reachable.
 
-Read [native availability and entry design](references/native-availability.md) for the upstream enum evidence and its exact-build limitations. Arvan's concrete 12-slot plan and per-state text are documented in [Elder Posta native entries](../../docs/elder-posta-native-dialogs.md). A slot plan is not a native NPC export: when NPC bindings are absent from the repository, state that the slot assignment is still required rather than claiming to have applied it on the server.
+### Handoff and reference boundaries
+
+When asked what to select on the NPC, give **only the intended starting roots, by exact dialogue title, in scan order**; IDs may be secondary for troubleshooting. Show reply-linked children separately and do not list them as additional NPC assignments unless they are deliberate resume roots. A slot plan is not a native NPC export: when NPC bindings are absent, state that assignment is still required rather than claiming to have applied it on the server.
+
+Read [native availability and entry design](references/native-availability.md) for evidence and exact-build limitations. [Elder Posta's existing plan](../../docs/elder-posta-native-dialogs.md) records the earlier 12-root implementation; it is not a general requirement to use all slots. A smaller replacement root set needs matching reply links, availability, and interruption tests before it can replace that plan.
+
+The user supplied the historical [Noppes Dialog Setup page](https://www.kodevelopment.nl/minecraft/customnpcs/dialog), dated 2013-05-02. It distinguishes creating global dialogues from assigning a starting dialogue to an NPC, but its old slot/option limits are not evidence for the current GBPort build. Use the user's current explanation for the ordered-entry model; do not copy obsolete UI limits or infer native enum values from that page.
 
 ## Delivery
 
